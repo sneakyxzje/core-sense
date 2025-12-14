@@ -1,5 +1,4 @@
 package com.insight_pulse.tech.auth.service;
-import org.apache.catalina.connector.Response;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
