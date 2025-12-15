@@ -53,27 +53,6 @@
                 Bắt đầu ngay
             </a>
             </div>
-        {:else}
-        <DropdownMenu>
-        <DropdownMenuTrigger class="cursor-pointer flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-md transition-colors">
-            Hello, {user.data?.fullname}
-        </DropdownMenuTrigger>
-        
-        <DropdownMenuContent class="cursor-pointer">
-            <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            
-            <div class="px-2 py-1.5 text-sm text-muted-foreground">
-                {user.data?.email}
-            </div>
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuItem class="cursor-pointer">Hồ sơ</DropdownMenuItem>
-            <DropdownMenuItem class="cursor-pointer">Cài đặt</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onclick={handleLogout} class="text-red-500 cursor-pointer">Đăng xuất</DropdownMenuItem>
-        </DropdownMenuContent>
-        </DropdownMenu>
         {/if}
     </div>
 </header>
