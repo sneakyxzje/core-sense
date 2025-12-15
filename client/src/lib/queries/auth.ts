@@ -12,6 +12,6 @@ export const useUser = () => {
     queryKey: authKeys.user(),
     queryFn: getMe,
     staleTime: 1000 * 60 * 15,
-    retry: 0,
+    retry: false,
   }));
 };
