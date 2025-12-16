@@ -1,7 +1,7 @@
 import type { User } from "@src/lib/types/user";
-import { api } from "@src/lib/utils/api";
+import { api, type Fetch } from "@src/lib/utils/api";
 
-export const getMe = async () => {
-  const data = await api.get<User>("/user/me");
+export const getMe = async (customFetch?: Fetch) => {
+  const data = await api.get<User>("/user/me", customFetch);
   return data;
 };
