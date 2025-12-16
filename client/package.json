@@ -22,6 +22,7 @@
 		"@tailwindcss/vite": "^4.1.17",
 		"@tanstack/svelte-query-devtools": "^6.0.2",
 		"@types/node": "^25.0.2",
+		"@types/uuid": "^10.0.0",
 		"bits-ui": "^2.14.4",
 		"clsx": "^2.1.1",
 		"svelte": "^5.45.6",
@@ -36,6 +37,8 @@
 	"dependencies": {
 		"@tanstack/svelte-query": "^6.0.10",
 		"lucide-svelte": "^0.561.0",
-		"mode-watcher": "^1.1.0"
+		"mode-watcher": "^1.1.0",
+		"svelte-dnd-action": "^0.9.68",
+		"uuid": "^13.0.0"
 	}
 }
