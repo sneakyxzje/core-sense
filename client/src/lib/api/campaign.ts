@@ -4,19 +4,19 @@ import type { CreateCampaignResponse } from "@src/lib/types/CreateCampaignRespon
 import { api } from "@src/lib/utils/api";
 
 export const getCampaigns = async () => {
-  const data = await api.get<Campaign[]>("/campaign");
+  const data = await api.get<Campaign[]>("/campaigns");
   return data;
 };
 
 export const createCampaign = async (payload: CreateCampaignRequest) => {
   const data = await api.post<CreateCampaignResponse, CreateCampaignRequest>(
-    "/campaign",
+    "/campaigns",
     payload
   );
   return data;
 };
 
 export const getCampaignById = async (campaignId: string) => {
-  const data = await api.get<CampaignDetail>(`/campaign/${campaignId}`);
+  const data = await api.get<CampaignDetail>(`/campaigns/${campaignId}`);
   return data;
 };
