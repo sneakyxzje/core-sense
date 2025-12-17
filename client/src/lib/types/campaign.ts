@@ -19,4 +19,18 @@ export interface CampaignDetail {
   aiSystemPrompt: string;
   createdAt: string;
   updatedAt: string;
+  totalSubmissions: number;
+}
+
+export interface Submission {
+  id: string;
+  aiAssessment: Record<string, any>;
+  answer: Record<string, any>;
+  score: number;
+  submittedAt: string;
+}
+
+export interface CampaignWithSubmission {
+  campaign: CampaignDetail;
+  submissions: Submission[];
 }
