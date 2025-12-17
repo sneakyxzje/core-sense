@@ -1,5 +1,6 @@
 package com.insight_pulse.tech.submission.service;
 
+
 import org.springframework.stereotype.Service;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
@@ -17,6 +18,7 @@ public class SubmissionService {
 
     private final CampaignRepository campaignRepository;
     private final SubmissionRepository submissionRepository;
+
     public void submitForm(String campaignId, SubmissionRequest request) {
         Campaign campaign = campaignRepository.findById(campaignId).orElseThrow(() -> new RuntimeException("Campaign not found"));
         if (campaign.getStatus() != CampaignStatus.ACTIVE) {
