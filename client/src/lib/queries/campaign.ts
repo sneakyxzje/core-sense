@@ -4,7 +4,7 @@ import { createQuery } from "@tanstack/svelte-query";
 
 export const useCampaign = () => {
   return createQuery<Campaign[]>(() => ({
-    queryKey: ["campaign", "list"],
+    queryKey: ["campaigns", "list"],
     queryFn: getCampaigns,
     staleTime: 1000 * 60 * 15,
     retry: 10,
