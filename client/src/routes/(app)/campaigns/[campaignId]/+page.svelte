@@ -17,6 +17,7 @@
   } from "lucide-svelte";
   import { useGetCampaignById } from "@src/lib/queries/campaign.js";
   import Textarea from "@src/lib/components/ui/textarea/textarea.svelte";
+  import { goto } from "$app/navigation";
 
   let { data } = $props();
 
@@ -57,7 +58,7 @@
             )}
           </span>
         </div>
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 class="text-3xl font-bold tracking-tight">
           {campaign?.data?.name}
         </h1>
         <p class="text-muted-foreground mt-1 max-w-2xl">
@@ -190,6 +191,17 @@
                 >{campaign.data?.formSchema?.length || 0}</span
               >
             </div>
+            <div class="flex justify-between py-2">
+              <span class="text-muted-foreground">Tổng câu trả lời:</span>
+              {campaign.data?.totalSubmissions || "Không có"}
+            </div>
+            <Button
+              onclick={() =>
+                goto(`/campaigns/${campaign.data?.id}/submissions`)}
+              class="flex cursor-pointer justify-between bg-primary py-2"
+            >
+              <span>Xem câu trả lời:</span>
+            </Button>
           </Card.Content>
         </Card.Root>
       </div>
