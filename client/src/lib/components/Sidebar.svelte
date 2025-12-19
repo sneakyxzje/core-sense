@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import { page } from "$app/state";
-  import { useQueryClient, createMutation } from "@tanstack/svelte-query";
+  import { createMutation } from "@tanstack/svelte-query";
   import { api } from "$lib/utils/api";
   import { goto } from "$app/navigation";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
