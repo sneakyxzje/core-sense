@@ -8,6 +8,7 @@
   import { getMappedAnswers } from "@src/lib/utils/FormMapper";
   import { formatDateTime } from "@src/lib/utils/FormatDate";
   import Button from "@src/lib/components/ui/button/button.svelte";
+  import { goto } from "$app/navigation";
   let { data }: { data: PageData } = $props();
 </script>
 
@@ -34,8 +35,12 @@
                 <div class="bg-primary/10 p-2 rounded-full">
                   <User class="size-4 text-primary" />
                 </div>
-                <Card.Title class="text-sm"
-                  >{s.answer["candidate_name"]} #{i + 1} <br />
+                <Card.Title class="text-sm">
+                  <div class="mb-2">
+                    <span class="font-bold">
+                      Phản hồi {i + 1}
+                    </span>
+                  </div>
                   <span>{formatDateTime(s.submittedAt)}</span>
                 </Card.Title>
               </div>
@@ -48,7 +53,7 @@
           <Card.Content class="flex-1 ">
             <ScrollArea class="h-[250px] pr-4">
               <div class="space-y-4">
-                {#each getMappedAnswers(data.campaign.formSchema, s.answer) as item, idx}
+                {#each getMappedAnswers(s.answer, data.campaign.formSchema) as item, idx}
                   <div class="group">
                     <div class="flex items-start gap-3">
                       <MessageSquareText
@@ -80,7 +85,12 @@
             class="bg-muted/10 py-3 text-[11px] text-muted-foreground flex justify-between border-t"
           >
             <span>CoreSense AI Evaluation</span>
-            <Button class="cursor-pointer">Xem chi tiết</Button>
+            <Button
+              class="cursor-pointer"
+              onclick={() =>
+                goto(`/campaigns/${data.campaignId}/submissions/${s.id}`)}
+              >Xem chi tiết</Button
+            >
           </Card.Footer>
         </Card.Root>
       {/each}
