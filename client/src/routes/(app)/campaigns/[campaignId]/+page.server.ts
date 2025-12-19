@@ -1,4 +1,3 @@
-import { getCampaignById } from "@src/lib/api/campaign.js";
 import type { PageServerLoad } from "./$types";
 import { api } from "@src/lib/utils/api";
 import type { CampaignDetail } from "@src/lib/types/campaign";
