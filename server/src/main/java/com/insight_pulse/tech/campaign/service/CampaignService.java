@@ -2,6 +2,7 @@ package com.insight_pulse.tech.campaign.service;
 
 import java.util.List;
 
+
 import org.springframework.stereotype.Service;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
@@ -14,6 +15,7 @@ import com.insight_pulse.tech.campaign.dto.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
+import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
 import com.insight_pulse.tech.user.domain.User;
 import com.insight_pulse.tech.user.domain.UserRepository;
@@ -65,9 +67,7 @@ public class CampaignService {
 
     public CampaignDetailResponse getCampaignById(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
-        User user = new User();
-        user.setId(userId);
-        Campaign campaign = campaignRepository.findByIdAndUser(campaignId, user)
+        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId)
         .orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
         long totalSubmissions = submissionRepository.countByCampaign_Id(campaignId);
         return new CampaignDetailResponse(
@@ -85,8 +85,7 @@ public class CampaignService {
 
     public CampaignWithSubmissionsResponse getSubmissionByCampaign(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
-        User user = new User(); user.setId(userId);
-        Campaign campaign = campaignRepository.findByIdAndUser(campaignId, user).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
+        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
         List<Submission> submissions = submissionRepository.findAllByCampaignId(campaignId);
         long totalSubmissions = submissions.size();
         CampaignDetailResponse campaignResponse = new CampaignDetailResponse(
@@ -111,5 +110,32 @@ public class CampaignService {
             campaignResponse,
             submissionResponse
         );
+    }
+
+    public SubmissionDetailResponse getSubmissionDetailByCampaign(String campaignId, String submissionId) {
+        int userId = currentUserProvider.getCurrentUserId();
+        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
+        String userPrompts = campaign.getAiSystemPrompt();
+        Submission submission = submissionRepository.findSubmissionDetail(userId, campaignId, submissionId);
+        return new SubmissionDetailResponse(
+            userPrompts,
+            submission.getId(),
+            submission.getAiAssessment(),
+            submission.getAnswers(),
+            submission.getScore(),
+            submission.getSubmittedAt(),
+            submission.getSchemaSnapshot()
+        );
+    }
+
+    public void toggleCampaignStatus(String campaignId, Boolean enabled) {
+        int userId = currentUserProvider.getCurrentUserId();
+        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
+        if(Boolean.TRUE.equals(enabled)) {
+            campaign.setStatus(CampaignStatus.ACTIVE);
+        } else {
+            campaign.setStatus(CampaignStatus.INACTIVE);
+        }
+        campaignRepository.save(campaign); 
     }
 }
