@@ -10,7 +10,6 @@
     >
       CoreSense
     </a>
-
     <div class="flex items-center gap-4">
       <a
         href="/login"
