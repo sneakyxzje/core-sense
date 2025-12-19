@@ -1,6 +1,7 @@
 package com.insight_pulse.tech.submission.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
+import com.insight_pulse.tech.campaign.domain.FormQuestion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +37,10 @@ public class Submission {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
     private Map<String, Object> answers;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "json")
+    private List<FormQuestion> schemaSnapshot;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
