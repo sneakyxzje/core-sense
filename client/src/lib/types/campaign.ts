@@ -42,6 +42,7 @@ export interface Submission {
   answer: Record<string, any>;
   score: number;
   submittedAt: string;
+  summary: string;
 }
 
 export interface CampaignWithSubmission {
