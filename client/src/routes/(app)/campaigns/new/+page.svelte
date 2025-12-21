@@ -102,13 +102,10 @@
       <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
         <section class="space-y-6">
           <div class="flex items-center gap-2">
-            <div class="p-1.5 rounded-md bg-foreground text-background">
-              <Settings2 class="w-4 h-4" />
-            </div>
             <h3
               class="text-xs font-black uppercase tracking-[0.15em] text-muted-foreground"
             >
-              1. Tạo chiến dịch mới
+              Tạo chiến dịch mới
             </h3>
           </div>
 
@@ -156,7 +153,7 @@
                 <BrainCircuit class="w-4 h-4" />
               </div>
               <h3 class="text-xs font-black uppercase tracking-[0.15em]">
-                2. Yêu cầu AI
+                AI Prompt
               </h3>
             </div>
           </div>
@@ -165,7 +162,7 @@
             <textarea
               id="aiSystemPrompt"
               class="relative w-full min-h-[300px] rounded-2xl border border-border bg-background px-5 py-5 text-sm focus:outline-none focus:ring-0 focus:border-primary transition-all leading-relaxed shadow-sm italic text-foreground/80"
-              placeholder="Nhập chỉ thị AI: Ví dụ đóng vai chuyên gia tâm lý để chấm điểm..."
+              placeholder="Nhập mong muốn chấm điểm của bạn..."
               bind:value={formData.aiSystemPrompt}
             ></textarea>
 
