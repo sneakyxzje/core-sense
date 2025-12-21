@@ -3,9 +3,7 @@ package com.insight_pulse.tech.submission.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import javax.management.RuntimeErrorException;
 
 import org.springframework.stereotype.Service;
 
@@ -34,6 +32,8 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final GeminiService geminiService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Transactional
     public void submitForm(String campaignId, SubmissionRequest request) {
         Campaign campaign = campaignRepository.findById(campaignId).orElseThrow(() -> new RuntimeException("Campaign not found"));
         if (campaign.getStatus() != CampaignStatus.ACTIVE) {
@@ -45,6 +45,7 @@ public class SubmissionService {
         submission.setAnswers(request.answers());
         submission.setSchemaSnapshot(schemaSnapshot);
         submissionRepository.save(submission);
+        campaignRepository.incrementTotalSubmissions(campaignId);
     }
 
     public PublicCampaignResponse getPublicSchema(String campaignId) {
