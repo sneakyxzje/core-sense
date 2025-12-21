@@ -3,8 +3,9 @@
   import favicon from "$lib/assets/favicon.svg";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
-  import { ModeWatcher } from "mode-watcher";
+  import { ModeWatcher, userPrefersMode } from "mode-watcher";
   import { browser } from "$app/environment";
+  import { Toaster } from "svelte-sonner";
 
   let { children } = $props();
 
@@ -21,7 +22,13 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <ModeWatcher />
-
+<Toaster
+  theme={userPrefersMode.current}
+  position="top-center"
+  richColors
+  expand
+  offset="16px"
+/>
 <QueryClientProvider client={queryClient}>
   {@render children()}
   <SvelteQueryDevtools buttonPosition="bottom-right" />
