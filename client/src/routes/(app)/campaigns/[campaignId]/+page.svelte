@@ -1,332 +1,453 @@
 <script lang="ts">
-  import * as Card from "$lib/components/ui/card";
+  import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "$lib/components/ui/table";
   import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
-  import { Separator } from "$lib/components/ui/separator";
-
+  import * as Sheet from "$lib/components/ui/sheet";
   import {
+    Search,
+    Filter,
+    Download,
+    Sparkles,
+    Eye,
+    ArrowUpDown,
+    MoreHorizontal,
     Calendar,
-    Activity,
-    Edit,
-    Share2,
-    BrainCircuit,
-    LinkIcon,
+    SquarePen,
+    CircleAlert,
   } from "lucide-svelte";
-  import Textarea from "@src/lib/components/ui/textarea/textarea.svelte";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { goto } from "$app/navigation";
-  import Switch from "@src/lib/components/ui/switch/switch.svelte";
+  import { getMappedAnswers } from "@src/lib/utils/FormMapper.js";
+  import { useDebounce } from "@src/lib/hooks/useDebounce.svelte.js";
   import { api } from "@src/lib/utils/api.js";
-  import * as HoverCard from "$lib/components/ui/hover-card/index.js";
-  const formUrl = "http://localhost:5173/p/";
+  import type { CampaignWithSubmission } from "@src/lib/types/campaign.js";
+
   let { data } = $props();
+  let submissions = $state(data.submissions || []);
   let campaign = $state(data.campaign);
-  $effect(() => {
-    campaign = data.campaign;
-  });
-  let isToggleStatus = $state(false);
-  let isLoading = $state(false);
-  const handleCheckedChange = async (newValue: boolean) => {
-    campaign.status = newValue ? "ACTIVE" : "INACTIVE";
-    isLoading = true;
-    try {
-      await api.post(`/campaigns/${campaign.id}/toggle-status`, {
-        enabled: newValue,
-      });
-    } catch (error) {
-      isToggleStatus = !newValue;
-      console.error(error);
-    } finally {
-      isLoading = false;
-    }
+  $inspect(submissions.map((s) => s.aiAssessment?.highlights));
+  $inspect(submissions);
+  let selectedSubmission = $state<any>(null);
+  let isSheetOpen = $state(false);
+  const getRespondentName = (answerMap: any) => {
+    if (!answerMap) return "Ẩn danh";
+    const values = Object.values(answerMap);
+    return values.length > 0 ? String(values[0]) : "Không tên";
   };
+
+  let search = $state("");
+  const debouncedSearch = useDebounce(() => search, 500);
+  $effect(() => {
+    const query = debouncedSearch.current;
+    const fetchSubmissions = async () => {
+      try {
+        const res = await api.get<CampaignWithSubmission>(
+          `/campaigns/${campaign.id}/submissions?search=${query}`
+        );
+        submissions = Array.isArray(res)
+          ? res.submissions
+          : res.submissions || [];
+      } catch (err) {
+        console.error("Lỗi tìm kiếm:", err);
+      }
+    };
+
+    fetchSubmissions();
+  });
+  const getScoreColor = (score: number) => {
+    if (!score) return "text-slate-500 bg-slate-100 border-slate-200";
+    if (score >= 8) return "text-green-700 bg-green-50 border-green-200";
+    if (score >= 5) return "text-yellow-700 bg-yellow-50 border-yellow-200";
+    return "text-red-700 bg-red-50 border-red-200";
+  };
+
+  function openDetail(sub: any) {
+    selectedSubmission = sub;
+    isSheetOpen = true;
+  }
 </script>
 
-<div class="container max-w-8xl py-10 space-y-10">
-  {#if campaign}
-    <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-      <div class="space-y-3 flex-1">
-        <div class="flex items-center gap-3">
-          <Badge
-            variant={campaign.status === "ACTIVE" ? "default" : "secondary"}
-            class="px-3 py-1 uppercase tracking-wider text-[10px] flex items-center gap-2"
-          >
-            <span class="relative flex h-2 w-2">
-              {#if campaign.status === "ACTIVE"}
-                <span
-                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75"
-                ></span>
-              {/if}
-              <span
-                class="relative inline-flex rounded-full h-2 w-2 {campaign.status ===
-                'ACTIVE'
-                  ? 'bg-current'
-                  : 'bg-muted-foreground'}"
-              ></span>
-            </span>
-            {campaign.status}
+<div class="container h-[calc(100vh-60px)] flex flex-col py-6 space-y-6">
+  <div class="flex flex-col gap-6">
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Phân tích phản hồi</h1>
+        <div class="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
+          <span>Chiến dịch:</span>
+          <Badge variant="outline" class="font-normal text-foreground">
+            {campaign.name}
           </Badge>
-
-          <div class="h-4 w-[1px] bg-border"></div>
-
-          <span
-            class="text-xs text-muted-foreground flex items-center gap-1.5 font-medium"
-          >
-            <Calendar class="w-3.5 h-3.5" />
-            Bắt đầu: {new Date(campaign.createdAt).toLocaleDateString("vi-VN")}
-          </span>
         </div>
-
-        <h1 class="text-4xl font-extrabold tracking-tight text-foreground">
-          {campaign?.name}
-        </h1>
-
-        <p class="text-muted-foreground text-lg max-w-3xl leading-relaxed">
-          {campaign?.description}
-        </p>
-
-        {#if campaign.status === "INACTIVE"}
-          <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-sm font-medium animate-in fade-in slide-in-from-left-2"
-          >
-            Chiến dịch hiện đang đóng. Sẽ không có phản hồi mới nào được ghi
-            lại.
-          </div>
-        {/if}
       </div>
-
-      <div class="flex gap-3 pt-2">
-        <HoverCard.Root>
-          <HoverCard.Trigger>
-            {#snippet child({ props })}
-              <Button
-                {...props}
-                variant="outline"
-                class="shadow-sm cursor-pointer hover:bg-secondary transition-all"
-              >
-                <Share2 class="w-4 h-4 mr-2" /> Chia sẻ
-              </Button>
-            {/snippet}
-          </HoverCard.Trigger>
-
-          <HoverCard.Content class="w-80 p-4">
-            <div class="flex flex-col gap-2">
-              <div class="space-y-1">
-                <h4
-                  class="text-sm font-semibold flex items-center gap-1 text-foreground"
-                >
-                  <LinkIcon class="w-3 h-3" /> Đường dẫn khảo sát:
-                </h4>
-                <a
-                  href={`${formUrl}${campaign.id}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  class="text-sm text-primary underline underline-offset-4 break-all hover:opacity-80 transition-opacity font-mono block"
-                >
-                  {formUrl}{campaign.id}
-                </a>
-              </div>
-              <p class="text-[10px] text-muted-foreground italic">
-                * Nhấp vào đường dẫn để mở trang khảo sát trong tab mới.
-              </p>
-            </div>
-          </HoverCard.Content>
-        </HoverCard.Root>
-        <Button class="shadow-md hover:shadow-lg transition-all">
-          <Edit class="w-4 h-4 mr-2" /> Chỉnh sửa
+      <div class="flex gap-2">
+        <Button variant="outline" size="sm">
+          <Download class="w-4 h-4 mr-2" /> Xuất Excel
         </Button>
       </div>
     </div>
 
-    <Separator class="bg-border/60" />
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-      <div class="lg:col-span-2 space-y-8">
-        <Card.Root class="overflow-hidden border-2 shadow-sm">
-          <Card.Header
-            class=" border-b flex flex-row items-center justify-between py-6"
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div
+        class="p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between"
+      >
+        <div class="space-y-1">
+          <span
+            class="text-xs text-muted-foreground font-medium uppercase tracking-wider"
+            >Tổng phản hồi</span
           >
-            <div class="space-y-1">
-              <Card.Title class="text-xl flex items-center gap-2">
-                <Edit class="w-5 h-5 text-primary" />
-                Cấu trúc Form khảo sát
-              </Card.Title>
-              <Card.Description
-                >Giao diện hiển thị thực tế cho người dùng</Card.Description
-              >
-            </div>
-
-            <div
-              class="flex items-center gap-3 bg-background px-4 py-2 rounded-xl border shadow-sm"
-            >
-              <Label
-                for="toggle-status"
-                class="text-xs font-bold uppercase tracking-tighter opacity-70"
-              >
-                {campaign.status === "ACTIVE" ? "Mở" : "Khóa"}
-              </Label>
-              <Switch
-                id="toggle-status"
-                checked={campaign.status === "ACTIVE"}
-                onCheckedChange={handleCheckedChange}
-                disabled={isLoading}
-                class="data-[state=checked]:bg-primary"
-              />
-            </div>
-          </Card.Header>
-
-          <Card.Content class="p-8 space-y-8">
-            {#if campaign?.formSchema && campaign?.formSchema.length > 0}
-              <div class="grid gap-8">
-                {#each campaign.formSchema as q, index (index)}
-                  <div class="group space-y-3 relative pb-2 transition-all">
-                    <div class="flex items-center justify-between">
-                      <Label
-                        class="text-sm font-semibold text-foreground/80 flex items-center gap-2"
-                      >
-                        <span
-                          class="flex items-center justify-center w-5 h-5 rounded bg-muted text-[10px] text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                        >
-                          {index + 1}
-                        </span>
-                        {q.label}
-                        {#if q.required}<span class="text-destructive">*</span
-                          >{/if}
-                      </Label>
-                      <Badge
-                        variant="secondary"
-                        class="text-[9px] font-bold h-5 opacity-70 group-hover:opacity-100 uppercase transition-opacity"
-                      >
-                        {q.type}
-                      </Badge>
-                    </div>
-
-                    {#if q.type === "textarea"}
-                      <Textarea
-                        disabled
-                        placeholder={q.placeholder || "Nội dung trả lời..."}
-                        class="bg-muted/20 border-dashed resize-none min-h-[100px]"
-                      />
-                    {:else if q.type === "select"}
-                      <div class="relative">
-                        <select
-                          disabled
-                          class="flex h-11 w-full rounded-md border border-input bg-muted/20 px-4 py-2 text-sm opacity-60 cursor-not-allowed appearance-none"
-                        >
-                          <option>-- Chọn đáp án --</option>
-                          {#if q.options}
-                            {#each q.options as opt}
-                              <option>{opt}</option>
-                            {/each}
-                          {/if}
-                        </select>
-                      </div>
-                    {:else}
-                      <Input
-                        disabled
-                        type={q.type}
-                        placeholder={q.placeholder || "Nội dung trả lời..."}
-                        class="bg-muted/20 border-dashed h-11"
-                      />
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            {:else}
-              <div
-                class="text-center py-20 bg-muted/10 rounded-2xl border-2 border-dashed flex flex-col items-center gap-3"
-              >
-                <div class="p-4 bg-muted rounded-full">
-                  <Edit class="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <p class="text-muted-foreground font-medium italic">
-                  Chưa có câu hỏi nào được thiết lập.
-                </p>
-              </div>
-            {/if}
-          </Card.Content>
-        </Card.Root>
+          <div class="text-2xl font-black">{campaign.totalSubmissions}</div>
+        </div>
       </div>
-
-      <div class="space-y-8">
-        <Card.Root class="border-indigo-100  overflow-hidden shadow-sm">
-          <Card.Header>
-            <Card.Title class="flex items-center gap-2 text-indigo-700 text-lg">
-              <BrainCircuit class="w-5 h-5" />
-              Cấu hình AI
-            </Card.Title>
-          </Card.Header>
-          <Card.Content class="space-y-3">
-            <Label
-              class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block"
-            >
-              Prompt
-            </Label>
-            <div
-              class="p-4 rounded-xl border border-indigo-100 bg-white/80 text-sm leading-relaxed text-indigo-900/80 min-h-[120px] shadow-inner italic whitespace-pre-wrap"
-            >
-              "{campaign.aiSystemPrompt || "Chưa cấu hình prompt cho AI."}"
-            </div>
-          </Card.Content>
-        </Card.Root>
-
-        <Card.Root class="shadow-sm">
-          <Card.Header class="pb-2 border-b mb-4">
-            <Card.Title class="flex items-center gap-2 text-lg">
-              <Activity class="w-5 h-5 text-primary" />
-              Thông tin hệ thống
-            </Card.Title>
-          </Card.Header>
-          <Card.Content class="space-y-1">
-            <div class="flex justify-between items-center py-3">
-              <span class="text-sm text-muted-foreground">ID Chiến dịch</span>
-              <code
-                class="bg-muted px-2 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-tight"
-              >
-                #{campaign.id.substring(0, 8)}
-              </code>
-            </div>
-            <Separator class="opacity-50" />
-            <div class="flex justify-between items-center py-3">
-              <span class="text-sm text-muted-foreground">Cập nhật cuối</span>
-              <span class="text-sm font-semibold"
-                >{new Date(campaign.updatedAt).toLocaleDateString(
-                  "vi-VN"
-                )}</span
-              >
-            </div>
-            <Separator class="opacity-50" />
-            <div class="flex justify-between items-center py-3">
-              <span class="text-sm text-muted-foreground">Tổng câu hỏi</span>
-              <Badge variant="outline" class="font-bold"
-                >{campaign.formSchema?.length || 0} mục</Badge
-              >
-            </div>
-
-            <div class="pt-6 space-y-3">
-              <div class="flex justify-between items-end mb-1">
-                <span class="text-sm text-muted-foreground font-medium"
-                  >Lượt phản hồi</span
-                >
-                <span class="text-3xl font-black tracking-tighter text-primary"
-                  >{campaign.totalSubmissions || 0}</span
-                >
-              </div>
-
-              <Button
-                onclick={() => goto(`/campaigns/${campaign.id}/submissions`)}
-                class="w-full h-11 cursor-pointer bg-primary shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex justify-between px-6"
-              >
-                <span class="font-bold tracking-tight"
-                  >Chi tiết câu trả lời</span
-                >
-                <Share2 class="w-4 h-4 rotate-90" />
-              </Button>
-            </div>
-          </Card.Content>
-        </Card.Root>
+      <div
+        class="p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between"
+      >
+        <div class="space-y-1">
+          <span
+            class="text-xs text-muted-foreground font-medium uppercase tracking-wider"
+            >Điểm AI TB</span
+          >
+          <div class="text-2xl font-black text-green-600">
+            {(
+              submissions.reduce((acc, curr) => acc + (curr.score || 0), 0) /
+              (submissions.length || 1)
+            ).toFixed(1)}/10
+          </div>
+        </div>
+      </div>
+      <div
+        class="p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between"
+      >
+        <div class="space-y-1">
+          <span
+            class="text-xs text-muted-foreground font-medium uppercase tracking-wider"
+            >Cần Review</span
+          >
+          <div class="text-2xl font-black text-red-500">
+            {submissions.filter((s) => s.score < 5).length}
+          </div>
+        </div>
+        <div
+          class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500"
+        >
+          <CircleAlert class="w-5 h-5" />
+        </div>
       </div>
     </div>
-  {/if}
+  </div>
+
+  <div class="flex items-center justify-between py-2">
+    <div class="relative w-72">
+      <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        bind:value={search}
+        type="search"
+        placeholder="Tìm kiếm ứng viên..."
+        class="pl-9 h-9 rounded-lg bg-white"
+      />
+    </div>
+    <div class="flex gap-2">
+      <Button variant="outline" size="sm" class="h-9 gap-2">
+        <Filter class="w-3.5 h-3.5" /> Bộ lọc
+      </Button>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          {#snippet child({ props })}
+            <Button {...props} variant="ghost" size="icon" class="h-9 w-9">
+              <MoreHorizontal class="w-4 h-4" />
+            </Button>
+          {/snippet}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Item>Làm mới dữ liệu</DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    </div>
+  </div>
+
+  <div
+    class="flex-1 rounded-xl border bg-background shadow-sm overflow-hidden flex flex-col"
+  >
+    <div class="overflow-auto">
+      <Table>
+        <TableHeader class="bg-muted/40 sticky top-0 z-10">
+          <TableRow>
+            <TableHead class="w-[200px]">Người gửi</TableHead>
+            <TableHead class="w-[120px]">
+              <Button variant="ghost" size="sm" class="-ml-3 h-8 font-bold">
+                AI Score <ArrowUpDown class="ml-2 h-3 w-3" />
+              </Button>
+            </TableHead>
+            <TableHead class="min-w-[400px]">
+              <div class="flex items-center gap-2">AI Tóm tắt & Nhận định</div>
+            </TableHead>
+            <TableHead class="w-[180px] text-right">Thời gian nộp</TableHead>
+            <TableHead class="w-[50px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {#each submissions as sub}
+            <TableRow
+              class="hover:bg-muted/50 cursor-pointer transition-colors group"
+              onclick={() => openDetail(sub)}
+            >
+              <TableCell class="font-medium align-top py-4">
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm font-bold text-foreground">
+                    {getRespondentName(sub.answer)}
+                  </span>
+                  <code
+                    class="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit"
+                  >
+                    #{sub.id.substring(0, 8)}
+                  </code>
+                </div>
+              </TableCell>
+              <TableCell class="align-top py-4">
+                <Badge
+                  variant="outline"
+                  class={`font-bold px-2.5 py-0.5 text-xs ${getScoreColor(sub.score)}`}
+                >
+                  {sub.score ? sub.score + " / 10" : "N/A"}
+                </Badge>
+              </TableCell>
+              <TableCell class="align-top py-4">
+                <div class="flex flex-col gap-1.5 max-w-2xl">
+                  <p
+                    class="text-sm text-foreground/80 line-clamp-2 leading-relaxed"
+                  >
+                    {sub.aiAssessment?.summary || "Chưa có tóm tắt từ AI..."}
+                  </p>
+                  <!-- {#each sub.aiAssessment.highlights as h}
+                    {#if h.type === "negative"}
+                      <div
+                        class="flex items-center gap-1 text-[10px] font-bold text-red-600"
+                      >
+                        <CircleAlert class="w-3 h-3" /> Cảnh báo tiêu cực
+                      </div>
+                    {/if}
+                  {/each} -->
+                </div>
+              </TableCell>
+              <TableCell
+                class="text-right text-muted-foreground text-xs align-top py-4"
+              >
+                <div class="flex flex-col items-end gap-1">
+                  <span
+                    >{new Date(sub.submittedAt).toLocaleDateString(
+                      "vi-VN"
+                    )}</span
+                  >
+                  <span class="opacity-70"
+                    >{new Date(sub.submittedAt).toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}</span
+                  >
+                </div>
+              </TableCell>
+              <TableCell class="align-top py-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors"
+                >
+                  <Eye class="w-4 h-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          {/each}
+
+          {#if campaign.totalSubmissions === 0}
+            <TableRow>
+              <TableCell
+                colspan={5}
+                class="h-24 text-center text-muted-foreground"
+              >
+                Chưa có phản hồi nào được ghi nhận.
+              </TableCell>
+            </TableRow>
+          {/if}
+        </TableBody>
+      </Table>
+    </div>
+  </div>
 </div>
+
+<Sheet.Root bind:open={isSheetOpen}>
+  <Sheet.Content
+    class="sm:max-w-xl w-[95vw] p-0 flex flex-col h-full border-l shadow-2xl overflow-hidden sm:duration-500"
+  >
+    {#if selectedSubmission}
+      <div class="relative overflow-hidden border-b bg-background px-6 py-8">
+        <div class="relative space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1.5">
+              <Sheet.Title
+                class="text-2xl font-extrabold tracking-tight text-primary-900 leading-tight"
+              >
+                {getRespondentName(selectedSubmission.answer)}
+              </Sheet.Title>
+              <div class="flex items-center gap-3 text-slate-500">
+                <div
+                  class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-md border border-slate-200 shadow-sm text-xs font-medium"
+                >
+                  <Calendar class="w-3.5 h-3.5 text-indigo-500" />
+                  {new Date(selectedSubmission.submittedAt).toLocaleDateString(
+                    "vi-VN"
+                  )}
+                </div>
+                <span
+                  class="text-[10px] uppercase tracking-wider font-bold opacity-40"
+                  >•</span
+                >
+                <span class="text-xs font-medium italic">
+                  {new Date(selectedSubmission.submittedAt).toLocaleTimeString(
+                    "vi-VN",
+                    { hour: "2-digit", minute: "2-digit" }
+                  )}
+                </span>
+              </div>
+            </div>
+
+            <div
+              class={`flex flex-col items-center justify-center min-w-[70px] p-2  border-2 shadow-sm ${getScoreColor(selectedSubmission.score)} bg-white`}
+            >
+              <span
+                class="text-[10px] uppercase font-bold opacity-70 leading-none mb-1"
+                >Điểm số</span
+              >
+              <span class="text-xl font-black leading-none"
+                >{selectedSubmission.score}<span class="text-xs opacity-60"
+                  >/10</span
+                ></span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="p-6 space-y-10 pb-32">
+          <div class="group relative">
+            <div
+              class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-500"
+            ></div>
+            <div
+              class="relative space-y-3 bg-white border border-indigo-100 rounded-xl p-5 shadow-sm"
+            >
+              <div class="flex items-center justify-between">
+                <h4
+                  class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] flex items-center gap-2"
+                >
+                  <div class="p-1 bg-indigo-100 rounded-lg">
+                    <Sparkles class="w-3.5 h-3.5" />
+                  </div>
+                  Tóm tắt phân tích của AI
+                </h4>
+              </div>
+
+              <div class="text-sm leading-7 text-slate-700">
+                {#if selectedSubmission.aiAssessment}
+                  <p>
+                    {selectedSubmission.aiAssessment?.summary}
+                  </p>
+                {:else}
+                  <div
+                    class="flex items-center gap-3 py-2 text-slate-400 italic"
+                  >
+                    <div
+                      class="w-2 h-2 bg-slate-200 rounded-full animate-pulse"
+                    ></div>
+                    Chưa có đánh giá chi tiết...
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="flex items-center gap-4">
+              <h4
+                class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap"
+              >
+                Chi tiết câu trả lời
+              </h4>
+              <div class="h-[1px] w-full bg-slate-100"></div>
+            </div>
+
+            <div class="space-y-6">
+              {#each getMappedAnswers(selectedSubmission.answer) as item, i}
+                <div
+                  class="relative pl-6 border-l-2 border-slate-100 hover:border-indigo-200 transition-colors"
+                >
+                  <span
+                    class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-slate-200 text-[9px] font-bold flex items-center justify-center text-slate-400"
+                  >
+                    {i + 1}
+                  </span>
+
+                  <div class="space-y-2">
+                    <span
+                      class="text-[11px] font-bold text-slate-500 uppercase tracking-wide"
+                    >
+                      {item.label}
+                    </span>
+                    <div
+                      class="text-sm text-primary-900 leading-relaxed bg-background p-4 rounded-xl border border-slate-100/50 whitespace-pre-wrap"
+                    >
+                      {item.value}
+                    </div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="absolute bottom-0 left-0 right-0 p-5 bg-background backdrop-blur-md border-t flex justify-end gap-3 z-30 shadow-[0_-10px_20px_rgba(0,0,0,0,0.02)]"
+      >
+        <Button
+          variant="ghost"
+          class="font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+          onclick={() => (isSheetOpen = false)}
+        >
+          Đóng
+        </Button>
+        <Button
+          class="bg-slate-900  hover:bg-slate-800 text-white px-6 rounded-xl transition-all active:scale-95"
+          onclick={() =>
+            goto(`${campaign.id}/submissions/${selectedSubmission.id}`)}
+        >
+          <SquarePen class="w-4 h-4 mr-2" />
+          Chi tiết
+        </Button>
+      </div>
+    {/if}
+  </Sheet.Content>
+</Sheet.Root>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+</style>
