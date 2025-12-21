@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record GeminiResponse(
     @JsonProperty("aiAssesment") String aiAssesment,
+    @JsonProperty("summary") String summary,
     @JsonProperty("score") double score,
     @JsonProperty("highlights") List<Highlight> highlights
 ) {
