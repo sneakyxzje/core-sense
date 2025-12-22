@@ -4,7 +4,6 @@ package com.insight_pulse.tech.submission.service;
 import java.util.List;
 import java.util.Map;
 
-
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,6 +19,7 @@ import com.insight_pulse.tech.gemini.service.GeminiService;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
 import com.insight_pulse.tech.submission.dto.SubmissionRequest;
+import com.insight_pulse.tech.submission.dto.SubmissionResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +82,25 @@ public class SubmissionService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return aiResult;
+    }
+
+    public GeminiResponse compare(List<SubmissionResponse> request) {
+        List<String> ids = request.stream()
+                .map(r -> (r.id())) 
+                .toList();
+        List<Submission> submissions = submissionRepository.findAllById(ids);
+        if (submissions.size() < 2) {
+            throw new IllegalArgumentException("Cần ít nhất 2 phản hồi để so sánh");
+        }
+
+        List<GeminiRequest> geminiRequest = submissions.stream()
+        .map((s) -> new GeminiRequest(
+            s.getSchemaSnapshot(),
+            s.getAnswers(), ""
+        )).toList();
+
+        GeminiResponse aiResult = geminiService.compare(geminiRequest);
         return aiResult;
     }
 }
