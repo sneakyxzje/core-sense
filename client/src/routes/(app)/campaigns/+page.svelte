@@ -86,8 +86,8 @@
       <p class="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
         Bạn chưa tạo chiến dịch nào. Hãy bắt đầu thu thập dữ liệu ngay hôm nay.
       </p>
-      <Button onclick={() => goto("/dashboard/campaigns/new")}>
-        <Plus class="mr-2 h-4 w-4" /> Tạo cái đầu tiên
+      <Button onclick={() => goto("/campaigns/new")}>
+        <Plus class="mr-2 h-4 w-4" /> Tạo chiến dịch đầu tiên
       </Button>
     </div>
   {:else}
