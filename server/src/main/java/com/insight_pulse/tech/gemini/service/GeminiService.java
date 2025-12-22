@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insight_pulse.tech.gemini.dto.GeminiRequest;
 import com.insight_pulse.tech.gemini.dto.GeminiResponse;
+
 import org.springframework.http.MediaType;
 
 import java.util.List;
@@ -24,6 +25,72 @@ public class GeminiService {
 
     public GeminiService() {
         this.restClient = RestClient.create();
+    }
+
+public GeminiResponse compare(List<GeminiRequest> requests) {
+    try {
+        String allSubmissionsJson = objectMapper.writerWithDefaultPrettyPrinter()
+                                                .writeValueAsString(requests);
+
+        String comparisonPrompt = String.format("""
+            --- INSIGHT PULSE: COMPARISON PROTOCOL ---
+            Bạn là chuyên gia nhân sự và phân tích dữ liệu. 
+            Nhiệm vụ: So sánh các câu trả lời dưới đây để tìm ra sự khác biệt và ứng viên ưu tú nhất.
+
+            --- INPUT DATA (DANH SÁCH PHẢN HỒI) ---
+            %s
+
+            --- YÊU CẦU SO SÁNH ---
+            1. ĐỐI CHIẾU: So sánh trực tiếp các câu trả lời cho cùng một câu hỏi trong formSchema.
+            2. ĐÁNH GIÁ: Xác định ai có câu trả lời sắc sảo, thực tế và phù hợp với bối cảnh hơn.
+            3. TỔNG KẾT: Đưa ra nhận xét công tâm về sự khác biệt chính.
+
+            --- OUTPUT FORMAT (STRICT JSON ONLY) ---
+            Trả về duy nhất JSON theo cấu trúc sau (Khớp với GeminiResponse):
+            {
+              "summary": "Tóm tắt sự khác biệt trong 1 câu (dưới 30 từ).",
+              "aiAssesment": "Bài phân tích so sánh chi tiết. Chỉ ra điểm mạnh của người này so với người kia.",
+              "score": <Điểm chênh lệch hoặc điểm trung bình tùy bạn quy định>,
+              "highlights": [
+                {
+                  "text": "Trích dẫn điểm khác biệt đáng chú ý",
+                  "type": "warning",
+                  "comment": "Tại sao điểm này lại tạo ra sự khác biệt giữa hai người?"
+                }
+              ]
+            }
+            - TRƯỜNG 'score': Phải là một số thực (Double) từ 0.0 đến 10.0. 
+            - TUYỆT ĐỐI KHÔNG: Không để số trong ngoặc kép, không thêm đơn vị (ví dụ: "9/10"), không thêm chú thích (ví dụ: "9.0 (Đạt)").
+            - GIÁ TRỊ 'score': Hãy lấy điểm của ứng viên cao nhất làm điểm đại diện cho kết quả so sánh này.
+            """, allSubmissionsJson);
+        return callGeminiApi(comparisonPrompt);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new GeminiResponse("Lỗi so sánh: " + e.getMessage(), "Không có dữ liệu", 0.0, Collections.emptyList());
+        }
+    }
+    private GeminiResponse callGeminiApi(String prompt) throws Exception {
+        String modelId = "gemini-flash-latest";
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelId + ":generateContent?key=" + apiKey;
+
+        var requestBody = Map.of(
+            "contents", List.of(
+                Map.of("parts", List.of(Map.of("text", prompt)))
+            )
+        );
+
+        String response = restClient.post()
+            .uri(url)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .retrieve()
+            .body(String.class);
+
+        JsonNode root = objectMapper.readTree(response);
+        String aiJsonText = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+        String cleanJson = aiJsonText.replaceAll("```json|```", "").trim();
+        
+        return objectMapper.readValue(cleanJson, GeminiResponse.class);
     }
 
     public GeminiResponse analyze(GeminiRequest request) {
