@@ -4,11 +4,14 @@ import java.util.List;
 
 import com.insight_pulse.tech.campaign.domain.FormQuestion;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
 public record CampaignRequest(
-    String name,
-    String description,
+    @NotBlank(message="Campaign name cant not be null!") String name,
+    @NotBlank(message="Description cant not be null") String description,
     String aiSystemPrompt,
-    List<FormQuestion> formSchema
+    @NotEmpty(message="Schema cant not be null") List<FormQuestion> formSchema
 ) {
     
 }
