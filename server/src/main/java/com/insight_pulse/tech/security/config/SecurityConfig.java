@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/submission/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/submission/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/feedback/submit").permitAll()
-
+                        .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
                         .requestMatchers("/api/dashboard/**").authenticated()
                         .requestMatchers("/api/channel/**").authenticated()
                         .requestMatchers("/api/user/info").authenticated()
