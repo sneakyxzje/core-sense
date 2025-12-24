@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.insight_pulse.tech.security.config.JwtConfigProperties;
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtTokenProvider {
     
     private final JwtConfigProperties jwtConfigProperties;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private SecretKey secretKey;
 
     private final long JWT_EXPIRATION = 600000L;
@@ -54,7 +55,7 @@ public class JwtTokenProvider {
     }
     
     public void deleteRefreshToken(String refreshToken) {
-        redisTemplate.delete(refreshToken);
+        redisTemplate.expire(refreshToken, 30, TimeUnit.SECONDS);
     }
     
     public String getUserIdFromRefreshToken(String refreshToken) {
