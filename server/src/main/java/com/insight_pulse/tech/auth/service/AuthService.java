@@ -1,7 +1,7 @@
 package com.insight_pulse.tech.auth.service;
 import java.util.List;
 
-
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -106,7 +106,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(false) 
                 .path("/")
-                .maxAge(24 * 60 * 60)
+                .maxAge(jwtTokenProvider.getExpiryInSeconds())
                 .sameSite("Strict")
                 .build();
         return List.of(refreshTokenCookie, accessTokenCookie);
