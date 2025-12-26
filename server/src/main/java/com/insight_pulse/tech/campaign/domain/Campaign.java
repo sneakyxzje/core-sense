@@ -59,4 +59,22 @@ public class Campaign {
     private LocalDateTime updatedAt;
 
     private long totalSubmissions;
+
+    public static Campaign create(String name, String description, String prompt, List<FormQuestion> formSchema, User user) {
+        Campaign campaign = new Campaign();
+        campaign.setName(name);
+        campaign.setDescription(description);
+        campaign.setAiSystemPrompt(prompt);
+        campaign.setFormSchema(formSchema);
+        campaign.setUser(user);
+        campaign.setStatus(CampaignStatus.ACTIVE); 
+        return campaign;
+    }
+
+    public void update(String name, String description, String prompt, List<FormQuestion> formSchema) {
+        this.name = name;
+        this.description = description;
+        this.aiSystemPrompt = prompt;
+        this.formSchema = formSchema;
+    }
 }
