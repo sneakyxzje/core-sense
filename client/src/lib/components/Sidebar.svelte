@@ -14,12 +14,8 @@
     UserIcon,
     LogOut,
     ChevronsUpDown,
-    SunIcon,
-    MoonIcon,
   } from "lucide-svelte";
   import SidebarMenuButton from "@src/lib/components/ui/sidebar/sidebar-menu-button.svelte";
-  import Button from "@src/lib/components/ui/button/button.svelte";
-  import { toggleMode } from "mode-watcher";
   const logoutMutation = createMutation(() => ({
     mutationFn: async () => api.post("/auth/logout", {}),
     onSuccess: () => {
@@ -51,31 +47,19 @@
   ];
 </script>
 
-<Sidebar.Root collapsible="icon">
+<Sidebar.Root collapsible="icon" class="bg-base-2">
   <Sidebar.Header>
     <Sidebar.Menu>
       <Sidebar.MenuItem>
         <Sidebar.MenuButton
           size="lg"
-          class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          class="data-[state=open]:bg-sidebar-accent bg-primary-1 data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div
-            class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-          >
-            <Sparkles class="size-4" />
+          <div class="grid flex-1 justify-center leading-tight">
+            <span class="truncate font-semibold text-primary-fg-1 text-xl"
+              >CoreSense</span
+            >
           </div>
-          <div class="grid flex-1 text-left text-sm leading-tight">
-            <span class="truncate font-semibold">CoreSense</span>
-            <span class="truncate text-xs">AI Evaluation</span>
-          </div>
-          <Button onclick={toggleMode} variant="outline" size="icon">
-            <SunIcon
-              class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 !transition-all dark:scale-0 dark:-rotate-90"
-            />
-            <MoonIcon
-              class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 !transition-all dark:scale-100 dark:rotate-0"
-            />
-          </Button>
         </Sidebar.MenuButton>
       </Sidebar.MenuItem>
     </Sidebar.Menu>
