@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtCookieExtractor {
-    public String extract(HttpServletRequest request) {
+    public String extractToken(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
         return Arrays.stream(request.getCookies())
                 .filter(c -> "jwt".equals(c.getName()))

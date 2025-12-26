@@ -34,7 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = jwtCookieExtractor.extract(request);
+        String token = jwtCookieExtractor.extractToken(request);
         if(token != null && jwtTokenProvider.validateToken(token)) {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
             UserDetailsImpl userDetails = (UserDetailsImpl) customUserDetailsService.loadUserById(userId);
