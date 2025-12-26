@@ -8,5 +8,11 @@ export const load: LayoutServerLoad = async ({ fetch, params }) => {
     `/campaigns/${campaignId}/submissions`,
     fetch
   );
-  return { campaign: res.campaign, submissions: res.submissions };
+  const campaignName = res.campaign.name;
+  return {
+    campaign: res.campaign,
+    submissions: res.submissions,
+    campaignName,
+    campaignId,
+  };
 };
