@@ -8,6 +8,7 @@
   import Input from "@src/lib/components/ui/input/input.svelte";
   import Label from "@src/lib/components/ui/label/label.svelte";
   import X from "@lucide/svelte/icons/x";
+  import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
   let { schema = $bindable([]) } = $props<{ schema: FormQuestion[] }>();
   const addQuestion = () => {
     const newQ: FormQuestion = {
@@ -29,7 +30,10 @@
 
 <div class="space-y-4">
   <div class="flex justify-end">
-    <Button variant="outline" onclick={addQuestion}>
+    <Button
+      class="border border-base-border-1 text-base-1 bg-primary-1 hover:bg-primary-hover"
+      onclick={addQuestion}
+    >
       <Plus class="mr-2 h-4 w-4" />
       Thêm câu hỏi
     </Button>
@@ -39,12 +43,12 @@
     use:dndzone={{ items: schema, flipDurationMs: 300 }}
     onconsider={handleDnd}
     onfinalize={handleDnd}
-    class="min-h-[200px] space-y-2 rounded-md border-2 border-dashed p-4"
+    class="min-h-[200px] space-y-2 rounded-md p-4"
   >
     {#each schema as q (q.id)}
       <div animate:flip={{ duration: 300 }}>
         <Card.Root
-          class=" group relative border-l-4 border-l-transparent hover:border-l-primary transition-all"
+          class=" group relative border-l border-base-border-1  transition-all"
         >
           <Card.Content class="p-4">
             <div class="flex gap-4 items-start">
@@ -55,7 +59,7 @@
                     <Input
                       bind:value={q.label}
                       placeholder="VD: Họ và tên..."
-                      class="mt-1.5"
+                      class="mt-1.5 border border-base-border-1 bg-base-2"
                     />
                   </div>
 
@@ -68,7 +72,7 @@
                           q.options = ["Lựa chọn 1", "Lựa chọn 2"];
                         }
                       }}
-                      class="flex h-10 w-full mt-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      class="flex h-10 w-full mt-1.5 rounded-md border border-base-border-1 bg-base-2 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="text">Văn bản ngắn</option>
                       <option value="textarea">Văn bản dài</option>
@@ -80,11 +84,10 @@
 
                 <div class="flex items-center justify-between pt-2">
                   <div class="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id={`req-${q.id}`}
                       bind:checked={q.required}
-                      class="h-4 w-4 accent-primary"
+                      class="h-4 w-4 border border-base-border-1 "
                     />
                     <Label
                       for={`req-${q.id}`}
@@ -95,28 +98,28 @@
                   <Input
                     bind:value={q.placeholder}
                     placeholder="Gợi ý mờ (Placeholder)..."
-                    class="max-w-[300px] h-8 text-sm"
+                    class="max-w-[300px] border border-base-border-1 bg-base-2 h-8 text-sm"
                   />
                 </div>
 
                 {#if q.type === "select"}
-                  <div class="mt-2 rounded-md p-3 border">
+                  <div class="mt-2 rounded-md p-3 border border-base-border-1">
                     <Label
                       class="mb-2 block text-xs font-semibold text-muted-foreground uppercase"
-                      >Danh sách đáp án</Label
+                      >Danh sách câu trả lời</Label
                     >
 
                     <div class="space-y-2">
                       {#each q.options || [] as _, i}
                         <div class="flex gap-2">
                           <div
-                            class="mt-3 h-4 w-4 rounded-full border border-slate-300"
+                            class="mt-3 h-4 w-4 rounded-full border border-base-border-1 bg-base-2"
                           ></div>
 
                           <Input
                             bind:value={q.options[i]}
                             placeholder={`Lựa chọn ${i + 1}`}
-                            class="h-9 bg-white"
+                            class="h-9 border border-base-border-1 bg-base-2"
                           />
 
                           <Button
@@ -137,7 +140,7 @@
                     <Button
                       variant="ghost"
                       size="sm"
-                      class="mt-3 h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      class="mt-3 h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-primary-hover"
                       onclick={() => {
                         q.options = [...(q.options || []), ""];
                       }}
