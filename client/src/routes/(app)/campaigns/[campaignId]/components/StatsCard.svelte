@@ -4,7 +4,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
   <div
-    class="p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between"
+    class="p-4 rounded-md border border-base-border-1 bg-base-3 shadow-sm flex items-center justify-between"
   >
     <div class="space-y-1">
       <span
@@ -15,7 +15,7 @@
     </div>
   </div>
   <div
-    class="p-4 rounded-xl border bg-card shadow-sm flex items-center justify-between"
+    class="p-4 rounded-xl border border-base-border-1 bg-base-3 shadow-sm flex items-center justify-between"
   >
     <div class="space-y-1">
       <span
