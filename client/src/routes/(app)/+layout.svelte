@@ -6,7 +6,7 @@
 
 <Sidebars.Provider>
   <Sidebar />
-  <main class="w-full bg-sidebar">
+  <main class="w-full bg-base-2">
     {@render children()}
   </main>
 </Sidebars.Provider>
