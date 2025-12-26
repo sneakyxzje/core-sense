@@ -41,7 +41,7 @@
     class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
   >
     <div
-      class="bg-card border shadow-2xl rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col relative"
+      class="bg-base-2 border border-base-border-1 shadow-2xl rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col relative"
     >
       <button
         onclick={() => (isComparisonOpen = false)}
@@ -50,7 +50,7 @@
         <X class="w-5 h-5" />
       </button>
 
-      <div class="p-6 border-b text-center bg-muted/10">
+      <div class="p-6 border-b border-base-border-1 text-center bg-muted/10">
         <h2 class="text-2xl font-bold tracking-tight">So sánh phản hồi</h2>
         <p class="text-muted-foreground">
           Phân tích sự khác biệt giữa các ứng viên
@@ -60,7 +60,7 @@
       <div class="flex-1 overflow-y-auto p-6 bg-dot-pattern">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
           <div
-            class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-background border-2 border-primary text-primary rounded-full items-center justify-center font-black shadow-xl z-10 italic"
+            class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-background border border-base-border-1 border-primary text-primary rounded-full items-center justify-center font-black shadow-xl z-10 italic"
           >
             VS
           </div>
@@ -68,9 +68,11 @@
           {#if stateComparison}
             {#each stateComparison as s, id}
               <div
-                class="flex flex-col h-full space-y-4 border rounded-2xl p-6 bg-card shadow-sm hover:border-primary/50 transition-colors"
+                class="flex flex-col h-full space-y-4 border border-base-border-1 rounded-lg p-6 bg-card shadow-sm hover:border-primary/50 transition-colors"
               >
-                <div class="flex items-start justify-between border-b pb-4">
+                <div
+                  class="flex items-start justify-between border-b border-base-border-1 pb-4"
+                >
                   <div class="space-y-1">
                     <span
                       class="text-xs font-medium text-muted-foreground uppercase tracking-widest"
@@ -97,7 +99,7 @@
                   <div class="grid gap-4">
                     {#each getMappedAnswers(s.answer, campaign.formSchema) as item}
                       <div
-                        class="group border-l-2 border-muted hover:border-primary pl-3 py-1 transition-all"
+                        class="group border-l border-base-border-1 border-muted hover:border-primary pl-3 py-1 transition-all"
                       >
                         <p
                           class="text-[11px] font-bold text-muted-foreground uppercase leading-none mb-1.5"
@@ -105,7 +107,7 @@
                           {item.label}
                         </p>
                         <p
-                          class="text-sm text-foreground/90 leading-relaxed font-medium"
+                          class="text-sm bg-base-3 rounded-md p-2 text-foreground/90 leading-relaxed font-medium"
                         >
                           {item.value || "—"}
                         </p>
@@ -114,8 +116,8 @@
                   </div>
                 </div>
 
-                <div class="mt-4 pt-4 border-t border-dashed">
-                  <div class="bg-muted/30 rounded-xl p-4">
+                <div class="mt-4 pt-4 border-t border-base-border-1">
+                  <div class="bg-base-3 rounded-xl p-4">
                     <p
                       class="text-xs font-bold text-muted-foreground mb-2 flex items-center gap-2"
                     >
@@ -137,15 +139,14 @@
           <Button
             disabled={isProcessing}
             onclick={() => onSubmit(stateComparison)}
-            class="px-10 py-7 text-lg font-bold rounded-full transition-all gap-3"
+            class="px-10 py-7 text-lg font-bold bg-primary-1 text-primary-fg-1 hover:bg-primary-hover rounded-xl transition-all gap-3"
           >
-            <Sparkles class="w-6 h-6" />
             {isProcessing ? "Đang phân tích..." : "Bắt đầu so sánh bằng AI"}
           </Button>
         </div>
 
-        <div class="mt-10 border-t pt-10">
-          <div class=" p-8 border border-primary/20 shadow-inner">
+        <div class="mt-10 border-t border-base-border-1 pt-10">
+          <div class=" p-8 border border-base-border-1 rounded-md shadow-inner">
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-3">
                 <h3 class="text-2xl font-bold italic tracking-tight">
@@ -166,16 +167,18 @@
             <div class="space-y-6">
               {#if compareResult}
                 <div
-                  class="prose prose-blue max-w-none text-foreground/80 leading-relaxed bg-background/50 p-6 rounded-2xl border border-dashed"
+                  class="prose prose-blue max-w-none bg-base-2 text-foreground/80 leading-relaxed p-6 rounded-2xl border border-base-border-1"
                 >
-                  <p class="text-sm font-medium whitespace-pre-line">
+                  <p
+                    class="text-sm font-medium text-base-fg-1 whitespace-pre-line"
+                  >
                     {compareResult.aiAssesment}
                   </p>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {#each compareResult.highlights as highlight}
                       <div
-                        class="flex flex-col gap-1.5 p-3 rounded-xl border transition-all hover:shadow-sm"
+                        class="flex flex-col gap-1.5 p-3 rounded-xl border border-base-border-1 transition-all hover:shadow-sm"
                       >
                         <div class="flex items-center gap-2">
                           <span
@@ -183,14 +186,16 @@
                           >
                             {highlight.type === "positive" ? "[+]" : "[-]"}
                           </span>
-                          <span class="text-sm font-bold leading-tight">
+                          <span
+                            class="text-sm font-bold text-base-fg-1 leading-tight"
+                          >
                             {highlight.text}
                           </span>
                         </div>
 
                         {#if highlight.comment}
                           <p
-                            class="text-xs opacity-80 leading-snug pl-6 border-l border-current/20"
+                            class="text-xs opacity-80 text-base-fg-3 leading-snug pl-6 border-l border-current/20"
                           >
                             {highlight.comment}
                           </p>
@@ -201,7 +206,7 @@
                 </div>
               {:else}
                 <div
-                  class="min-h-[200px] flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-2xl gap-3 text-muted-foreground"
+                  class="min-h-[200px] flex flex-col items-center justify-center border border-base-border-1 rounded-md gap-3 text-muted-foreground"
                 >
                   <p class="text-sm font-medium italic">
                     Chưa có dữ liệu phân tích chi tiết. Nhấn nút phía trên để
