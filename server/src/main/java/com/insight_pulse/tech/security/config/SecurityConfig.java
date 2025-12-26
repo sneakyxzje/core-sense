@@ -18,7 +18,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.insight_pulse.tech.security.filter.JwtAuthFilter;
+import com.insight_pulse.tech.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.insight_pulse.tech.security.oauth2.OAuth2Handler;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -28,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter; 
+    private final OAuth2Handler oAuth2Handler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -46,10 +51,20 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
+                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2Handler))
+                .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(authorization -> authorization.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
+                        .exceptionHandling(exception -> exception
+                            .authenticationEntryPoint((request, response, authException) -> {
+                                if(request.getRequestURI().startsWith("/api/")) {
+                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                    response.getWriter().write("Token expired or Invalid");
+                                } else {
+                                    response.sendRedirect("oauth2/authorization/google");
+                                }
+                            })
+                        )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
