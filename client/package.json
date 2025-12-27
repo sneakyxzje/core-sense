@@ -37,6 +37,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"@stomp/stompjs": "^7.2.1",
 		"@tanstack/svelte-query": "^6.0.10",
 		"cookie": "^1.1.1",
 		"lucide-svelte": "^0.561.0",
