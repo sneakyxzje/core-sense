@@ -20,7 +20,7 @@ export const STATUS_COLORS: Record<CampaignStatus, string> = {
   ACTIVE: "bg-green-700 hover:bg-green-600",
   DRAFT: "bg-gray-500 hover:bg-gray-600",
   NEW: "bg-primary hover:bg-primary-600",
-  INACTIVE: "bg-destructive hover:bg-destructive-600",
+  INACTIVE: "bg-status-canceled hover:bg-destructive-600",
 };
 
 export interface CampaignDetail {
