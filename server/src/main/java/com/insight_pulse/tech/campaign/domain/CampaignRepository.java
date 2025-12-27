@@ -1,5 +1,6 @@
 package com.insight_pulse.tech.campaign.domain;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -8,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import com.insight_pulse.tech.submission.dto.SubmissionChart;
 public interface CampaignRepository extends JpaRepository<Campaign, String> {
     
     Page<Campaign> findAllByUserId(int userId, Pageable pageable);
@@ -17,4 +20,41 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
     @Modifying 
     @Query("UPDATE Campaign c SET c.totalSubmissions = c.totalSubmissions + 1 WHERE c.id = :id")
     void incrementTotalSubmissions(@Param("id") String id);
+
+    @Query("SELECT SUM(c.totalSubmissions) FROM Campaign c WHERE c.user.id = :userId")
+    Integer getSumSubmissionByUserId(int userId);
+
+    Integer countByUserIdAndStatus(int userId, CampaignStatus status);
+
+    // Tỷ lệ >= 8 của các submission trong tất cả các campaign của user
+    @Query("""
+        SELECT (COUNT(CASE WHEN s.score >= 8 THEN 1 END) * 100.0 / COUNT(s)) FROM Submission s 
+        WHERE s.campaign.user.id = :userId
+    """)
+    Double calculateHightQualityRatio(@Param("userId") int userId);
+
+    /* 
+        Biểu đồ submission 7 ngày qua
+        đầu tiên là đếm số ngày từ hiện tại trừ đi created của submission
+        sau đó nhóm theo số ngày và đếm số submission theo mỗi nhóm
+        Nó sẽ trả về một danh sách các mảng đối tượng, mỗi mảng có hai phần tử:
+        - Đầu: Số ngày ( String )
+        - Cuối: Số lượng submission ( Long )
+        Vậy return type của method này sẽ là 1 list các object
+    */ 
+    @Query(value ="""
+            SELECT 
+                TO_CHAR(d.date, 'DD/MM/YYYY') as timePoint,
+                COUNT(s.id) as value
+            FROM 
+                generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day') AS d(date)
+            LEFT JOIN 
+                submissions s ON TO_CHAR(s.submitted_at, 'DD/MM/YYYY') = TO_CHAR(d.date, 'DD/MM/YYYY')
+            GROUP BY 
+                d.date
+            ORDER BY 
+                d.date ASC;
+            """, nativeQuery = true)
+    List<SubmissionChart> getSubmissionChartData(@Param("userId") int userId);
+    
 }
