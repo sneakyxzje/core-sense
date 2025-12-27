@@ -121,6 +121,7 @@
                   checked={item.status === "ACTIVE"}
                   onCheckedChange={(e) => handleCheckedChange(item.id, e)}
                   disabled={isLoading}
+                  class="cursor-pointer "
                 />
               </div>
               <Card.Title class="text-xl pt-2 truncate" title={item.name}>
