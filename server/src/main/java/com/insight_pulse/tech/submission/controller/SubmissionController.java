@@ -1,6 +1,7 @@
 package com.insight_pulse.tech.submission.controller;
 
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.insight_pulse.tech.campaign.dto.PublicCampaignResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionRequest;
+import com.insight_pulse.tech.submission.dto.SubmissionSummary;
 import com.insight_pulse.tech.submission.service.SubmissionService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,5 +33,10 @@ public class SubmissionController {
     @GetMapping("/campaign-schema/{campaignId}")
     public ResponseEntity<PublicCampaignResponse> getPublicSchema(@PathVariable String campaignId) {
         return ResponseEntity.ok(submissionService.getPublicSchema(campaignId));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<SubmissionSummary>> getSubmissionSummary() {
+        return ResponseEntity.ok(submissionService.getSubmissionSummary());
     }
 }
