@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SubmissionRepository extends JpaRepository<Submission, String> {
-    List<Submission> findAllByCampaignId(String campaignId);
+    Page<Submission> findAllByCampaignId(String campaignId, Pageable pageable);
 
     @Query("""
         SELECT s
@@ -34,12 +34,21 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
     );
 
     @Query(value = """
-    SELECT * 
-    FROM submissions s 
-    WHERE s.campaigns_id = :campaignId 
-      AND CAST(s.answers AS TEXT) ILIKE CONCAT('%', :search, '%')
-    """, nativeQuery = true)
-    List<Submission> searchSubmission(@Param("campaignId") String campaignId, @Param("search") String search);
+        SELECT * FROM submissions s 
+        WHERE s.campaigns_id = :campaignId 
+        AND (
+            LOWER(CAST(s.answers AS TEXT)) LIKE LOWER(CONCAT('%', :search, '%')) 
+        )
+        """, 
+        countQuery = """
+        SELECT count(*) FROM submissions s 
+        WHERE s.campaigns_id = :campaignId 
+        AND (
+            LOWER(CAST(s.answers AS TEXT)) LIKE LOWER(CONCAT('%', :search, '%')) 
+        )
+        """,
+        nativeQuery = true)
+    Page<Submission> searchSubmission(@Param("campaignId") String campaignId, @Param("search") String search, Pageable pageable);
 
 
     Page<Submission> findByCampaignUserId(int userId, Pageable pageable);
