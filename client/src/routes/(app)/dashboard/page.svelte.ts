@@ -20,8 +20,8 @@ export class DashboardState {
     summary: SubmissionSummary[];
   }) {
     (this.stats = initialData.stats),
-      (this.chart = initialData.chart),
-      (this.summary = initialData.summary);
+      (this.chart = initialData.chart ?? []),
+      (this.summary = initialData.summary ?? []);
   }
 
   statsCards = $derived([
@@ -43,7 +43,7 @@ export class DashboardState {
   ]);
 
   chartItems = $derived.by(() => {
-    const raw = this.chart;
+    const raw = this.chart ?? [];
     const max = Math.max(...raw.map((d) => d.value), 1);
     return raw.map((item) => ({
       label: item.timePoint.split("/")[0] + "/" + item.timePoint.split("/")[1],
