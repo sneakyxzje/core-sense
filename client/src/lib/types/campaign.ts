@@ -47,7 +47,7 @@ export interface Submission {
 
 export interface CampaignWithSubmission {
   campaign: CampaignDetail;
-  submissions: Submission[];
+  submissions: PageResponse<Submission>;
 }
 
 export interface SubmissionDetail extends Submission {
