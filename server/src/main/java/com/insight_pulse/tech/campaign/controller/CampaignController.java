@@ -65,8 +65,8 @@ public class CampaignController {
     }
 
     @GetMapping("/{campaignId}/submissions")
-    public ResponseEntity<CampaignWithSubmissionsResponse> findSubmissionsByCampaign(@PathVariable String campaignId, @RequestParam(required=false) String search) {
-        return ResponseEntity.ok(campaignService.findSubmissionByCampaign(campaignId, search));
+    public ResponseEntity<CampaignWithSubmissionsResponse> findSubmissionsByCampaign(@PathVariable String campaignId, @RequestParam(required=false) String search, Pageable pageable) {
+        return ResponseEntity.ok(campaignService.findSubmissionByCampaign(campaignId, search, pageable));
     }
 
     @GetMapping("/{campaignId}/submissions/{submissionId}")
