@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { Button } from "$lib/components/ui/button";
   import {
     Card,
@@ -11,33 +10,9 @@
   } from "$lib/components/ui/card";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
-  import type { LoginPayload } from "@src/lib/types/auth";
-  import { api } from "@src/lib/utils/api";
+  import { LoginState } from "@src/routes/(auth)/login/page.svelte";
 
-  let payload = $state<LoginPayload>({
-    email: "",
-    password: "",
-  });
-
-  let isLoading = $state(false);
-  let showPassword = $state(false);
-
-  const handleLogin = async (e: Event) => {
-    e.preventDefault();
-    isLoading = true;
-
-    try {
-      const ok = await api.post("/auth/login", payload);
-      if (ok) {
-        await goto("/dashboard", { invalidateAll: true });
-      }
-    } catch (err) {
-      console.error("Lỗi đăng nhập:", err);
-      alert("Đăng nhập thất bại, kiểm tra lại tài khoản!");
-    } finally {
-      isLoading = false;
-    }
-  };
+  const state = new LoginState();
 </script>
 
 <div class="w-full flex items-center justify-center p-4">
@@ -58,8 +33,7 @@
     </CardHeader>
 
     <CardContent class="px-6 pb-6">
-      <form onsubmit={handleLogin} class="grid gap-5">
-        <!-- Email Input -->
+      <form onsubmit={state.submit} class="grid gap-5">
         <div class="grid gap-2">
           <Label
             for="email"
@@ -90,13 +64,12 @@
               type="email"
               placeholder="email@example.com"
               required
-              bind:value={payload.email}
+              bind:value={state.form.email}
               class="pl-11 h-12 border-[var(--color-base-border-1)] bg-[var(--color-base-2)] text-[var(--color-base-fg-1)] focus:border-[var(--color-primary-1)] focus:ring-2 focus:ring-[var(--color-primary-1)]/20 transition-all duration-200"
             />
           </div>
         </div>
 
-        <!-- Password Input -->
         <div class="grid gap-2">
           <div class="flex items-center justify-between">
             <Label
@@ -132,17 +105,17 @@
             </div>
             <Input
               id="password"
-              type={showPassword ? "text" : "password"}
+              type={state.showPassword ? "text" : "password"}
               required
-              bind:value={payload.password}
+              bind:value={state.form.password}
               class="pl-11 pr-11 h-12 border-[var(--color-base-border-1)] bg-[var(--color-base-2)] text-[var(--color-base-fg-1)] focus:border-[var(--color-primary-1)] focus:ring-2 focus:ring-[var(--color-primary-1)]/20 transition-all duration-200"
             />
             <button
               type="button"
-              onclick={() => (showPassword = !showPassword)}
+              onclick={() => (state.showPassword = !state.showPassword)}
               class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-base-fg-4)] hover:text-[var(--color-base-fg-2)] transition-colors"
             >
-              {#if showPassword}
+              {#if state.showPassword}
                 <svg
                   class="w-5 h-5"
                   fill="none"
@@ -181,13 +154,12 @@
           </div>
         </div>
 
-        <!-- Login Button -->
         <Button
           type="submit"
           class="w-full h-12 mt-2 bg-[var(--color-primary-1)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-[var(--color-primary-fg-1)] font-semibold shadow-lg transition-all duration-200 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
+          disabled={state.isLoading}
         >
-          {#if isLoading}
+          {#if state.isLoading}
             <svg
               class="animate-spin -ml-1 mr-3 h-5 w-5"
               fill="none"
@@ -235,7 +207,7 @@
             window.location.href =
               "http://localhost:8080/oauth2/authorization/google";
           }}
-          disabled={isLoading}
+          disabled={state.isLoading}
         >
           <img
             src="https://developers.google.com/identity/images/g-logo.png"
