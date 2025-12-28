@@ -29,7 +29,7 @@
     try {
       const ok = await api.post("/auth/login", payload);
       if (ok) {
-        await goto("/campaigns", { invalidateAll: true });
+        await goto("/dashboard", { invalidateAll: true });
       }
     } catch (err) {
       console.error("Lỗi đăng nhập:", err);
