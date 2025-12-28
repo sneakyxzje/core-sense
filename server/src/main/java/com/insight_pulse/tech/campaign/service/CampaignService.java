@@ -4,6 +4,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStatus;
@@ -21,8 +23,10 @@ import com.insight_pulse.tech.submission.domain.SubmissionRepository;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
+import com.insight_pulse.tech.submission.mapper.SubmissionMapper;
 import com.insight_pulse.tech.user.domain.User;
 import com.insight_pulse.tech.user.domain.UserRepository;
+import com.insight_pulse.tech.utils.PageableUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,7 @@ public class CampaignService {
     private final SubmissionRepository submissionRepository;
     private final CurrentUserProvider currentUserProvider;
     private final CampaignMapper campaignMapper;
+    private final SubmissionMapper submissionMapper;
 
     private Campaign getOwnedCampaign(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
@@ -75,13 +80,7 @@ public class CampaignService {
     public Page<CampaignResponse> getCampaigns(Pageable pageable) {
         int userId = currentUserProvider.getCurrentUserId();
         Page<Campaign> campaigns = campaignRepository.findAllByUserId(userId, pageable);
-        return campaigns.map(campaign -> new CampaignResponse(
-            campaign.getId(),
-            campaign.getName(),
-            campaign.getDescription(),
-            campaign.getStatus(),
-            campaign.getCreatedAt()
-        ));
+        return campaigns.map(campaignMapper::toResponse);
     }
 
     public CampaignDetailResponse getCampaignById(String campaignId) {
@@ -89,58 +88,17 @@ public class CampaignService {
         return campaignMapper.toDetailResponse(campaign);
     }
 
-    public CampaignWithSubmissionsResponse getSubmissionByCampaign(String campaignId) {
-        int userId = currentUserProvider.getCurrentUserId();
-        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
-        List<Submission> submissions = submissionRepository.findAllByCampaignId(campaignId);
-        long totalSubmissions = submissions.size();
-        CampaignDetailResponse campaignResponse = new CampaignDetailResponse(
-            campaign.getId(),
-            campaign.getName(),
-            campaign.getDescription(),
-            campaign.getStatus(),
-            campaign.getFormSchema(),
-            campaign.getAiSystemPrompt(),
-            campaign.getCreatedAt(),
-            campaign.getUpdatedAt(),
-            totalSubmissions
-        );
-        List<SubmissionResponse> submissionResponse = submissions.stream().map(s -> new SubmissionResponse(
-            s.getId(),
-            s.getAiAssessment(),
-            s.getAnswers(),
-            s.getScore(),
-            s.getSubmittedAt()
-        )).toList();
-        return new CampaignWithSubmissionsResponse(
-            campaignResponse,
-            submissionResponse
-        );
-    }
-
     public SubmissionDetailResponse getSubmissionDetailByCampaign(String campaignId, String submissionId) {
         int userId = currentUserProvider.getCurrentUserId();
         Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
         String userPrompts = campaign.getAiSystemPrompt();
         Submission submission = submissionRepository.findSubmissionDetail(userId, campaignId, submissionId);
-        return new SubmissionDetailResponse(
-            userPrompts,
-            submission.getId(),
-            submission.getAiAssessment(),
-            submission.getAnswers(),
-            submission.getScore(),
-            submission.getSubmittedAt(),
-            submission.getSchemaSnapshot()
-        );
+        return submissionMapper.toDetailResponse(submission, userPrompts);
     }
 
     public void toggleCampaignStatus(String campaignId, Boolean enabled) {        
         Campaign campaign = getOwnedCampaign(campaignId);
-        if(Boolean.TRUE.equals(enabled)) {
-            campaign.setStatus(CampaignStatus.ACTIVE);
-        } else {
-            campaign.setStatus(CampaignStatus.INACTIVE);
-        }
+        campaign.toggleStatus(enabled); 
         campaignRepository.save(campaign); 
     }
 
@@ -156,35 +114,22 @@ public class CampaignService {
         return campaignMapper.toDetailResponse(campaign);
     }
 
-    public CampaignWithSubmissionsResponse findSubmissionByCampaign(String campaignId, String search) {
+
+    public CampaignWithSubmissionsResponse findSubmissionByCampaign(String campaignId, String search, Pageable pageable) {
         int userId = currentUserProvider.getCurrentUserId();
         Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
-        List<Submission> submissions;
+        Page<Submission> submissions;
 
-        if(search != null && !search.trim().isEmpty()) {
-            submissions = submissionRepository.searchSubmission(campaignId, search.trim());
+        if(StringUtils.hasText(search)) {
+            Pageable nativePageable = PageableUtils.convertToNativePageable(pageable);
+            submissions = submissionRepository.searchSubmission(campaignId, search.trim(), nativePageable);
         }
         else {
-            submissions = submissionRepository.findAllByCampaignId(campaignId);
+            submissions = submissionRepository.findAllByCampaignId(campaignId, pageable);
         }
-        CampaignDetailResponse campaignResponse = new CampaignDetailResponse(
-            campaign.getId(),
-            campaign.getName(),
-            campaign.getDescription(),
-            campaign.getStatus(),
-            campaign.getFormSchema(),
-            campaign.getAiSystemPrompt(),
-            campaign.getCreatedAt(),
-            campaign.getUpdatedAt(),
-            campaign.getTotalSubmissions()
-        );
-        List<SubmissionResponse> submissionResponse = submissions.stream().map(s -> new SubmissionResponse(
-            s.getId(),
-            s.getAiAssessment(),
-            s.getAnswers(),
-            s.getScore(),
-            s.getSubmittedAt()
-        )).toList();
+        
+        CampaignDetailResponse campaignResponse = campaignMapper.toDetailResponse(campaign);
+        Page<SubmissionResponse> submissionResponse = submissions.map(submissionMapper::toResponse);
         return new CampaignWithSubmissionsResponse(
             campaignResponse,
             submissionResponse
