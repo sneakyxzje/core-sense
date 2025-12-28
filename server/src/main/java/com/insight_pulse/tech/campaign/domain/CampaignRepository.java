@@ -28,7 +28,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
 
     // Tỷ lệ >= 8 của các submission trong tất cả các campaign của user
     @Query("""
-        SELECT (COUNT(CASE WHEN s.score >= 8 THEN 1 END) * 100.0 / COUNT(s)) FROM Submission s 
+        SELECT (COUNT(CASE WHEN s.score >= 8 THEN 1 END) * 100.0 / NULLIF(COUNT(s), 0)) FROM Submission s 
         WHERE s.campaign.user.id = :userId
     """)
     Double calculateHightQualityRatio(@Param("userId") int userId);
@@ -45,14 +45,16 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
     @Query(value ="""
             SELECT 
                 TO_CHAR(d.date, 'DD/MM/YYYY') as timePoint,
-                COUNT(s.id) as value
+                COUNT(c.id) as value
             FROM 
                 generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day') AS d(date)
-            LEFT JOIN 
+                LEFT JOIN 
                 submissions s ON TO_CHAR(s.submitted_at, 'DD/MM/YYYY') = TO_CHAR(d.date, 'DD/MM/YYYY')
-            GROUP BY 
+                LEFT JOIN
+                campaigns c ON s.campaigns_id = c.id AND c.owner_id = :userId
+                GROUP BY 
                 d.date
-            ORDER BY 
+                ORDER BY 
                 d.date ASC;
             """, nativeQuery = true)
     List<SubmissionChart> getSubmissionChartData(@Param("userId") int userId);
