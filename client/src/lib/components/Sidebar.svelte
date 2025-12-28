@@ -16,12 +16,8 @@
     ChevronsUpDown,
   } from "lucide-svelte";
   import SidebarMenuButton from "@src/lib/components/ui/sidebar/sidebar-menu-button.svelte";
-  const logoutMutation = createMutation(() => ({
-    mutationFn: async () => api.post("/auth/logout", {}),
-    onSuccess: () => {
-      goto("/login");
-    },
-  }));
+  import { AuthState } from "@src/routes/(auth)/page.svelte";
+  const auth = new AuthState();
 
   const items = [
     {
@@ -145,7 +141,7 @@
                 </DropdownMenu.Item>
               </DropdownMenu.Group>
               <DropdownMenu.Separator />
-              <DropdownMenu.Item onclick={() => logoutMutation.mutate()}>
+              <DropdownMenu.Item onclick={auth.logout}>
                 <LogOut class="mr-2 size-4" />
                 Đăng xuất
               </DropdownMenu.Item>
