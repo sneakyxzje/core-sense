@@ -31,6 +31,7 @@ export const formatDateTime = (date: DateInput) => {
 
 export const formatRelativeTime = (date: DateInput, locale = "vi-VN") => {
   if (!date) return "-";
+
   const d = new Date(date);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
@@ -45,3 +46,11 @@ export const formatRelativeTime = (date: DateInput, locale = "vi-VN") => {
 
   return formatDate(date);
 };
+
+export function parseDate(dateString: string): string {
+  if (!dateString) return new Date().toISOString();
+
+  let safeDate = dateString.replace(/(\.\d{3})\d+/, "$1");
+
+  return safeDate;
+}
