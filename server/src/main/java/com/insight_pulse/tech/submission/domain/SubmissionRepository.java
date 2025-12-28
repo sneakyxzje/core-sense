@@ -3,6 +3,8 @@ package com.insight_pulse.tech.submission.domain;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,6 +40,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
       AND CAST(s.answers AS TEXT) ILIKE CONCAT('%', :search, '%')
     """, nativeQuery = true)
     List<Submission> searchSubmission(@Param("campaignId") String campaignId, @Param("search") String search);
+
+
+    Page<Submission> findByCampaignUserId(int userId, Pageable pageable);
 
     long countByCampaign_Id(String campaignId);
 }
