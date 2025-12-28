@@ -77,4 +77,13 @@ public class Campaign {
         this.aiSystemPrompt = prompt;
         this.formSchema = formSchema;
     }
+
+    public void toggleStatus(Boolean enabled) {
+        if (Boolean.TRUE.equals(enabled)) {
+            this.status = CampaignStatus.ACTIVE;
+        } else {
+            this.status = CampaignStatus.INACTIVE;
+        }
+    }
+    
 }
