@@ -4,6 +4,10 @@ package com.insight_pulse.tech.submission.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +21,13 @@ import com.insight_pulse.tech.campaign.dto.PublicCampaignResponse;
 import com.insight_pulse.tech.gemini.dto.GeminiRequest;
 import com.insight_pulse.tech.gemini.dto.GeminiResponse;
 import com.insight_pulse.tech.gemini.service.GeminiService;
+import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
 import com.insight_pulse.tech.submission.dto.SubmissionEvent;
 import com.insight_pulse.tech.submission.dto.SubmissionRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
+import com.insight_pulse.tech.submission.dto.SubmissionSummary;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +41,7 @@ public class SubmissionService {
     private final GeminiService geminiService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SimpMessagingTemplate messagingTemplate;
+    private final CurrentUserProvider currentUserProvider;
 
     @Transactional
     public void submitForm(String campaignId, SubmissionRequest request) {
@@ -70,6 +77,17 @@ public class SubmissionService {
             campaign.getFormSchema()
         );
     }
+
+    public Page<SubmissionSummary> getSubmissionSummary() {
+        int userId = currentUserProvider.getCurrentUserId();
+        Pageable top5 = PageRequest.of(0, 5, Sort.by("submittedAt").descending());
+        Page<Submission> submissions = submissionRepository.findByCampaignUserId(userId, top5);
+        return submissions.map(s -> new SubmissionSummary(
+            s.getCampaign().getName(),
+            s.getSubmittedAt()
+        ));
+    }
+
 
     @Transactional
     public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
