@@ -1,44 +1,41 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import { page } from "$app/state";
-  import { createMutation } from "@tanstack/svelte-query";
-  import { api } from "$lib/utils/api";
-  import { goto } from "$app/navigation";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
   import {
     FileText,
-    Inbox,
     LayoutDashboard,
     Settings,
     Sparkles,
     UserIcon,
     LogOut,
     ChevronsUpDown,
+    Bell,
+    Users,
+    LayoutPanelLeft,
   } from "lucide-svelte";
-  import SidebarMenuButton from "@src/lib/components/ui/sidebar/sidebar-menu-button.svelte";
   import { AuthState } from "@src/routes/(auth)/page.svelte";
   const auth = new AuthState();
 
   const items = [
     {
-      title: "Tổng quan",
-      url: "/dashboard",
-      icon: LayoutDashboard,
+      label: "Tổng quan",
+      items: [
+        { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+        { title: "Thông báo", url: "/notifications", icon: Bell },
+      ],
     },
     {
-      title: "Chiến dịch",
-      url: "/campaigns",
-      icon: FileText,
+      label: "Tuyển dụng",
+      items: [
+        { title: "Chiến dịch", url: "/campaigns", icon: FileText },
+        { title: "Ứng viên", url: "/candidates", icon: Users },
+        { title: "Kho mẫu", url: "/templates", icon: LayoutPanelLeft },
+      ],
     },
     {
-      title: "Kết quả (Submissions)",
-      url: "/submissions",
-      icon: Inbox,
-    },
-    {
-      title: "Cài đặt",
-      url: "/settings",
-      icon: Settings,
+      label: "Hệ thống",
+      items: [{ title: "Cài đặt", url: "/settings", icon: Settings }],
     },
   ];
 </script>
@@ -62,25 +59,27 @@
   </Sidebar.Header>
 
   <Sidebar.Content>
-    <Sidebar.Group>
-      <Sidebar.GroupLabel>Platform</Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu>
-          {#each items as item (item.title)}
-            <Sidebar.MenuItem>
-              <SidebarMenuButton isActive={page.url.pathname === item.url}>
-                {#snippet child({ props })}
-                  <a href={item.url} {...props}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </a>
-                {/snippet}
-              </SidebarMenuButton>
-            </Sidebar.MenuItem>
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
+    {#each items as group}
+      <Sidebar.Group>
+        <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
+        <Sidebar.GroupContent>
+          <Sidebar.Menu>
+            {#each group.items as item (item.url)}
+              <Sidebar.MenuItem>
+                <Sidebar.MenuButton isActive={page.url.pathname === item.url}>
+                  {#snippet child({ props })}
+                    <a href={item.url} {...props}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  {/snippet}
+                </Sidebar.MenuButton>
+              </Sidebar.MenuItem>
+            {/each}
+          </Sidebar.Menu>
+        </Sidebar.GroupContent>
+      </Sidebar.Group>
+    {/each}
   </Sidebar.Content>
 
   <Sidebar.Footer>
