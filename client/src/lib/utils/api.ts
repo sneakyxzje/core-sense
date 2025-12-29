@@ -71,6 +71,23 @@ export const api = {
     return handleResponse<T>(response);
   },
 
+  patch: async <T, D>(
+    endpoint: string,
+    data: D,
+    customFetch: Fetch = fetch
+  ): Promise<T> => {
+    const url = `${BASE_URL}${endpoint}`;
+    const response = await customFetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+      credentials: "include",
+    });
+    return handleResponse<T>(response);
+  },
+
   delete: async <T>(
     endpoint: string,
     customFetch: Fetch = fetch
