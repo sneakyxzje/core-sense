@@ -13,10 +13,12 @@ public class SubmissionMapper {
     public SubmissionResponse toResponse(Submission s) {
         return new SubmissionResponse(
             s.getId(),
+            s.getFullname(),
             s.getAiAssessment(),
             s.getAnswers(),
             s.getScore(),
-            s.getSubmittedAt()
+            s.getSubmittedAt(),
+            s.getCurrentStage() != null ? s.getCurrentStage().getId() : null
         );
     }
 
