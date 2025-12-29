@@ -3,13 +3,14 @@
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
   import { MoonIcon, SunIcon } from "lucide-svelte";
   import { toggleMode } from "mode-watcher";
-
+  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+  import PanelLeft from "@lucide/svelte/icons/panel-left";
   function formatLabel(str: string) {
     return str
       .replace(/-/g, " ")
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
-
+  const sidebar = Sidebar.useSidebar();
   function getBreadcrumbLabel(segment: string) {
     const data = page.data;
 
@@ -23,7 +24,16 @@
 </script>
 
 <div class=" flex justify-between items-center px-4 py-2">
-  <div>
+  <div class="flex items-center gap-4">
+    <button
+      onclick={sidebar.toggle}
+      class="p-2 hover:bg-accent rounded-md transition-colors"
+      title="Toggle Sidebar"
+    >
+      <PanelLeft
+        class="h-5 w-5 transition-transform {sidebar.open ? '' : 'rotate-180'}"
+      />
+    </button>
     <Breadcrumb.Root>
       <Breadcrumb.List>
         {@const paths = page.url.pathname
