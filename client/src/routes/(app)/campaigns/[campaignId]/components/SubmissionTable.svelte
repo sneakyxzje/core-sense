@@ -30,7 +30,7 @@
 </script>
 
 <div
-  class="flex-1 rounded-lg border border-base-border-1 bg-base-3 shadow-sm overflow-hidden flex flex-col"
+  class="h-full w-full rounded-lg border border-base-border-1 bg-base-3 shadow-sm flex flex-col overflow-hidden"
 >
   <div class="overflow-auto">
     <Table>
@@ -65,7 +65,7 @@
             <TableCell class="font-medium align-top py-4">
               <div class="flex flex-col gap-1">
                 <span class="text-sm font-bold text-foreground">
-                  {getRespondentName(sub.answer, campaign.formSchema)}
+                  {sub.fullName}
                 </span>
                 <code
                   class="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit"
