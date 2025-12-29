@@ -6,15 +6,11 @@
 
   import {
     BrainCircuit,
-    Edit,
     Eye,
     Info,
     ListChecks,
     Pencil,
     Plus,
-    Rocket,
-    Save,
-    Settings2,
   } from "lucide-svelte";
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
   import { createCampaign } from "@src/lib/api/campaign";
