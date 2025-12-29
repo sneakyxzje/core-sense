@@ -1,31 +1,83 @@
 <script lang="ts">
   import type { FormQuestion } from "@src/lib/types/FormQuestion";
   import * as Card from "$lib/components/ui/card/index.js";
-  import { dndzone, type DndEvent } from "svelte-dnd-action";
+  import { dndzone, TRIGGERS, type DndEvent } from "svelte-dnd-action";
   import Button from "@src/lib/components/ui/button/button.svelte";
-  import { Plus, Trash2 } from "lucide-svelte";
+  import { Grip, GripVertical, Lock, Plus, Trash2 } from "lucide-svelte";
   import { flip } from "svelte/animate";
   import Input from "@src/lib/components/ui/input/input.svelte";
   import Label from "@src/lib/components/ui/label/label.svelte";
   import X from "@lucide/svelte/icons/x";
   import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
   let { schema = $bindable([]) } = $props<{ schema: FormQuestion[] }>();
+  const SYSTEM_FIELDS = [
+    {
+      id: "sys-name",
+      label: "Họ và tên",
+      type: "text",
+      required: true,
+      isSystem: true,
+      placeholder: "Nhập họ và tên ứng viên...",
+    },
+    {
+      id: "sys-email",
+      label: "Email",
+      type: "email",
+      required: true,
+      isSystem: true,
+      placeholder: "Nhập địa chỉ email...",
+    },
+  ];
+
+  $effect(() => {
+    if (schema.length === 0) {
+      schema = [...SYSTEM_FIELDS];
+    } else {
+      const hasName = schema.some((q: FormQuestion) => q.id === "sys-name");
+      const hasEmail = schema.some((q: FormQuestion) => q.id === "sys-email");
+
+      if (!hasName || !hasEmail) {
+        const customFields = schema.filter((q: FormQuestion) => !q.isSystem);
+        schema = [...SYSTEM_FIELDS, ...customFields];
+      }
+    }
+  });
   const addQuestion = () => {
     const newQ: FormQuestion = {
       id: crypto.randomUUID(),
       type: "text",
       label: "Câu hỏi mới",
       required: false,
+      isSystem: false,
     };
 
     schema = [...schema, newQ];
   };
-  const handleDnd = (e: CustomEvent<DndEvent<FormQuestion>>) => {
-    schema = e.detail.items;
+  const handleDnd = (e: any) => {
+    const { items, info } = e.detail as DndEvent<FormQuestion>;
+    schema = items;
+
+    if (
+      info.trigger === TRIGGERS.DRAGGED_ENTERED ||
+      info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER
+    ) {
+      dragDisabled = true;
+    }
+
+    const systemPart = items.filter((i) => i.isSystem);
+    const customPart = items.filter((i) => !i.isSystem);
+    schema = [
+      ...systemPart.sort((a, b) => b.id.localeCompare(a.id)),
+      ...customPart,
+    ];
   };
   const removeQuestion = (id: string) => {
     schema = schema.filter((q: any) => q.id !== id);
   };
+  let dragDisabled = $state(true);
+  function startDrag() {
+    dragDisabled = false;
+  }
 </script>
 
 <div class="space-y-4">
@@ -40,13 +92,29 @@
   </div>
 
   <div
-    use:dndzone={{ items: schema, flipDurationMs: 300 }}
+    use:dndzone={{
+      items: schema,
+      flipDurationMs: 300,
+      dragDisabled: dragDisabled,
+    }}
     onconsider={handleDnd}
     onfinalize={handleDnd}
     class="min-h-[200px] space-y-2 rounded-md p-4"
   >
     {#each schema as q (q.id)}
-      <div animate:flip={{ duration: 300 }}>
+      <div animate:flip={{ duration: 300 }} class="relative group">
+        {#if !q.isSystem}
+          <button
+            class="absolute left-2 top-3 z-10 cursor-grab active:cursor-grabbing p-1.5
+               hover:bg-secondary transition-colors
+               "
+            onmousedown={startDrag}
+            ontouchstart={startDrag}
+            type="button"
+          >
+            <Grip class="h-4 w-4 text-muted-foreground" />
+          </button>
+        {/if}
         <Card.Root
           class=" group relative border-l border-base-border-1  transition-all"
         >
@@ -55,10 +123,13 @@
               <div class="flex-1 space-y-4">
                 <div class="flex gap-4">
                   <div class="flex-1">
-                    <Label>Tiêu đề câu hỏi</Label>
+                    <Label
+                      >Tiêu đề câu hỏi {q.isSystem ? "(Bắt buộc)" : ""}</Label
+                    >
                     <Input
                       bind:value={q.label}
                       placeholder="VD: Họ và tên..."
+                      disabled={q.isSystem}
                       class="mt-1.5 border border-base-border-1 bg-base-2"
                     />
                   </div>
@@ -72,9 +143,11 @@
                           q.options = ["Lựa chọn 1", "Lựa chọn 2"];
                         }
                       }}
+                      disabled={q.isSystem}
                       class="flex h-10 w-full mt-1.5 rounded-md border border-base-border-1 bg-base-2 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="text">Văn bản ngắn</option>
+                      <option value="email">Email</option>
                       <option value="textarea">Văn bản dài</option>
                       <option value="number">Số</option>
                       <option value="select">Trắc nghiệm</option>
@@ -87,6 +160,7 @@
                     <Checkbox
                       id={`req-${q.id}`}
                       bind:checked={q.required}
+                      disabled={q.isSystem}
                       class="h-4 w-4 border border-base-border-1 "
                     />
                     <Label
@@ -98,6 +172,7 @@
                   <Input
                     bind:value={q.placeholder}
                     placeholder="Gợi ý mờ (Placeholder)..."
+                    disabled={q.isSystem}
                     class="max-w-[300px] border border-base-border-1 bg-base-2 h-8 text-sm"
                   />
                 </div>
@@ -152,14 +227,20 @@
                 {/if}
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onclick={() => removeQuestion(q.id)}
-                class="text-red-500 hover:bg-red-50 hover:text-red-600"
-              >
-                <Trash2 class="h-4 w-4" />
-              </Button>
+              {#if !q.isSystem}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onclick={() => removeQuestion(q.id)}
+                  class="text-red-500 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </Button>
+              {:else}
+                <div class="p-2 text-muted-foreground/50">
+                  <Lock class="h-4 w-4" />
+                </div>
+              {/if}
             </div>
           </Card.Content>
         </Card.Root>
