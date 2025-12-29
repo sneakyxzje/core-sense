@@ -33,7 +33,7 @@
     isToggleStatus = newValue;
     isLoading = true;
     try {
-      await api.post(`/campaigns/${campaignId}/toggle-status`, {
+      await api.patch(`/campaigns/${campaignId}/status`, {
         enabled: newValue,
       });
     } catch (error) {
