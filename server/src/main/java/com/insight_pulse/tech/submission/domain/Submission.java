@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
+import com.insight_pulse.tech.campaign.domain.CampaignStage;
 import com.insight_pulse.tech.campaign.domain.FormQuestion;
 
 import jakarta.persistence.Column;
@@ -30,6 +31,12 @@ public class Submission {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(name = "fullname", nullable = false, columnDefinition = "varchar(255) default 'N/A'")
+    private String fullname;
+
+    @Column(name = "email", nullable = false, columnDefinition = "varchar(255) default 'N/A'")
+    private String email;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="campaigns_id", nullable = false)
     private Campaign campaign;
@@ -50,4 +57,8 @@ public class Submission {
 
     @CreationTimestamp
     private LocalDateTime submittedAt;
+
+    @ManyToOne
+    @JoinColumn(name ="current_stage_id")
+    private CampaignStage currentStage;
 }
