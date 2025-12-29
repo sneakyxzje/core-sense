@@ -42,7 +42,7 @@
 		"cookie": "^1.1.1",
 		"lucide-svelte": "^0.561.0",
 		"mode-watcher": "^1.1.0",
-		"svelte-dnd-action": "^0.9.68",
+		"svelte-dnd-action": "^0.9.69",
 		"uuid": "^13.0.0"
 	}
 }
