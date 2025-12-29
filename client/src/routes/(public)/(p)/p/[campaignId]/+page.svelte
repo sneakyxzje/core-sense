@@ -59,6 +59,13 @@
                 placeholder={field.placeholder}
                 class="w-full p-2 border text-black border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
               />
+            {:else if field.type === "email"}
+              <input
+                bind:value={answers[field.id]}
+                required={field.required}
+                placeholder={field.placeholder}
+                class="w-full p-2 border text-black border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
             {:else if field.type === "textarea"}
               <textarea
                 bind:value={answers[field.id]}
