@@ -5,18 +5,21 @@
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import {
     Search,
-    Download,
     Copy,
     Share2,
     ChevronLeft,
     ChevronRight,
+    Kanban,
+    Table,
+    Plus,
   } from "lucide-svelte";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { useDebounce } from "@src/lib/hooks/useDebounce.svelte.js";
   import { api } from "@src/lib/utils/api.js";
-  import type {
-    CampaignWithSubmission,
-    Submission,
+  import {
+    type CampaignStage,
+    type CampaignWithSubmission,
+    type Submission,
   } from "@src/lib/types/campaign.js";
   import Label from "@src/lib/components/ui/label/label.svelte";
   import { toast } from "svelte-sonner";
@@ -28,12 +31,13 @@
   import { fly } from "svelte/transition";
   import X from "@lucide/svelte/icons/x";
   import Check from "@lucide/svelte/icons/check";
+  import SubmissionKanban from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionKanban.svelte";
 
   let { data } = $props();
 
   let submissions = $state(data.submissions.content || []);
   let campaign = $state(data.campaign);
-
+  let campaignStages = $state(data.stages);
   let currentPage = $state(data.submissions.number || 0);
   let totalPages = $state(data.submissions.totalPages || 0);
   let totalElements = $state(data.submissions.totalElements || 0);
@@ -107,6 +111,28 @@
   const handleComparison = () => {
     isComparisonOpen = true;
   };
+
+  let viewMode = $state("table");
+
+  let columns = $state(campaignStages || []);
+  const addColumn = async () => {
+    try {
+      const response = await api.post<CampaignStage, {}>(
+        `/campaigns/${campaign.id}/stages`,
+        {
+          stageName: "Cột mới",
+          position: columns.length,
+        },
+        fetch
+      );
+
+      const newStage = response;
+      columns.push(newStage);
+      toast.success("Đã tạo cột mới thành công");
+    } catch (error) {
+      toast.error("Không thể tạo cột, vui lòng thử lại");
+    }
+  };
 </script>
 
 <div class="h-[calc(100vh-110px)] flex flex-col space-y-6">
@@ -121,67 +147,89 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <Dialog.Root>
-          <Dialog.Trigger>
-            <Button
-              class="h-9 bg-primary-1 text-primary-fg-1 shadow-sm hover:bg-primary-hover border border-transparent"
-            >
-              <Share2 class="mr-2 h-4 w-4" /> Share
-            </Button>
-          </Dialog.Trigger>
-          <Dialog.Content class="sm:max-w-md bg-bg border-base-border-1">
-            <Dialog.Header>
-              <Dialog.Title class="text-base-fg-1"
-                >Chia sẻ đường dẫn</Dialog.Title
+        {#if viewMode === "table"}
+          <Dialog.Root>
+            <Dialog.Trigger>
+              <Button
+                class="h-9 bg-primary-1 text-primary-fg-1 shadow-sm hover:bg-primary-hover border border-transparent"
               >
-              <Dialog.Description class="text-base-fg-3"
-                >Bất kỳ ai có đường link này đều có thể truy cập.</Dialog.Description
-              >
-            </Dialog.Header>
-            <div class="flex flex-col gap-3 py-4">
-              <Label for="link" class="text-base-fg-2">Liên kết</Label>
-              <div class="flex items-center gap-2">
-                <Input
-                  id="link"
-                  readonly
-                  value={sharedLink}
-                  class="flex-1 bg-base-2 border-base-border-1 text-base-fg-1 focus-visible:ring-primary-1"
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="secondary"
-                  class="shrink-0 border border-base-border-1 bg-base-2 hover:bg-base-3 text-base-fg-1"
-                  onclick={copyLink}
+                <Share2 class="mr-2 h-4 w-4" /> Share
+              </Button>
+            </Dialog.Trigger>
+            <Dialog.Content class="sm:max-w-md bg-bg border-base-border-1">
+              <Dialog.Header>
+                <Dialog.Title class="text-base-fg-1"
+                  >Chia sẻ đường dẫn</Dialog.Title
                 >
-                  {#if copied}
-                    <Check class="h-4 w-4 text-green-500" />
-                  {:else}
-                    <Copy class="h-4 w-4" />
-                  {/if}
-                </Button>
+                <Dialog.Description class="text-base-fg-3"
+                  >Bất kỳ ai có đường link này đều có thể truy cập.</Dialog.Description
+                >
+              </Dialog.Header>
+              <div class="flex flex-col gap-3 py-4">
+                <Label for="link" class="text-base-fg-2">Liên kết</Label>
+                <div class="flex items-center gap-2">
+                  <Input
+                    id="link"
+                    readonly
+                    value={sharedLink}
+                    class="flex-1 bg-base-2 border-base-border-1 text-base-fg-1 focus-visible:ring-primary-1"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="secondary"
+                    class="shrink-0 border border-base-border-1 bg-base-2 hover:bg-base-3 text-base-fg-1"
+                    onclick={copyLink}
+                  >
+                    {#if copied}
+                      <Check class="h-4 w-4 text-green-500" />
+                    {:else}
+                      <Copy class="h-4 w-4" />
+                    {/if}
+                  </Button>
+                </div>
               </div>
-            </div>
-            <Dialog.Footer class="sm:justify-start">
-              <Dialog.Close>
-                <Button
-                  variant="ghost"
-                  class="text-base-fg-3 hover:text-base-fg-1">Đóng</Button
-                >
-              </Dialog.Close>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Root>
+              <Dialog.Footer class="sm:justify-start">
+                <Dialog.Close>
+                  <Button
+                    variant="ghost"
+                    class="text-base-fg-3 hover:text-base-fg-1">Đóng</Button
+                  >
+                </Dialog.Close>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Root>
+        {:else}
+          <Button onclick={addColumn} class="h-9  bg-primary-1 text-base-1">
+            <Plus class="mr-2 h-4 w-4" /> Tạo cột
+          </Button>
+        {/if}
 
-        <Button
-          variant="outline"
-          class="h-9 border-base-border-1 text-base-fg-2 hover:bg-base-2 hover:text-primary-1"
+        <div
+          class="flex items-center gap-2 bg-base-2 p-1 rounded-lg border border-base-border-2 shadow-sm"
         >
-          <Download class="mr-2 h-4 w-4" /> Xuất Excel
-        </Button>
+          <Button
+            onclick={() => (viewMode = "table")}
+            class="h-9   hover:bg-primary-hover {viewMode === 'table'
+              ? 'bg-background text-base-1 shadow-sm bg-primary-3'
+              : 'text-muted-foreground hover:text-base-1'}"
+          >
+            <Table class="mr-2 h-4 w-4" /> Table
+          </Button>
+          <Button
+            onclick={() => (viewMode = "kanban")}
+            class="h-9   hover:bg-primary-hover {viewMode === 'kanban'
+              ? 'bg-background text-base-1 shadow-sm bg-primary-3'
+              : 'text-muted-foreground hover:text-base-1'}"
+          >
+            <Kanban class="mr-2 h-4 w-4" /> Kanban
+          </Button>
+        </div>
       </div>
     </div>
-    <StatsCard {campaign} submissions={data.submissions.content} />
+    {#if viewMode === "table"}
+      <StatsCard {campaign} />
+    {/if}
   </div>
 
   <div class="flex items-center justify-between py-2">
@@ -241,41 +289,51 @@
     </div>
   {/if}
 
-  <div class="flex-1 overflow-auto">
-    <SubmissionTable
-      {submissions}
-      {campaign}
-      {stateComparison}
-      {checkComparison}
-      {openDetail}
-    />
+  <div class="flex-1 min-h-0 min-w-0 w-full relative border-base-border-1">
+    {#if viewMode === "table"}
+      <div class="absolute inset-0 h-full overflow-auto">
+        <SubmissionTable
+          {submissions}
+          {campaign}
+          {stateComparison}
+          {checkComparison}
+          {openDetail}
+        />
+      </div>
+    {:else}
+      <div class="absolute inset-0 overflow-auto">
+        <SubmissionKanban {submissions} {campaign} {columns} />
+      </div>
+    {/if}
   </div>
 
-  <div
-    class="flex items-center justify-end space-x-2 py-4 border-t border-base-border-1"
-  >
-    <div class="flex-1 text-sm text-muted-foreground">
-      Trang {currentPage + 1} / {totalPages || 1}
+  {#if viewMode === "table"}
+    <div
+      class="flex items-center justify-end space-x-2 py-4 border-t border-base-border-1"
+    >
+      <div class="flex-1 text-sm text-muted-foreground">
+        Trang {currentPage + 1} / {totalPages || 1}
+      </div>
+      <div class="space-x-2 flex items-center">
+        <Button
+          variant="outline"
+          size="sm"
+          onclick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 0}
+        >
+          <ChevronLeft class="h-4 w-4 mr-1" /> Trước
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onclick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages - 1}
+        >
+          Sau <ChevronRight class="h-4 w-4 ml-1" />
+        </Button>
+      </div>
     </div>
-    <div class="space-x-2 flex items-center">
-      <Button
-        variant="outline"
-        size="sm"
-        onclick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 0}
-      >
-        <ChevronLeft class="h-4 w-4 mr-1" /> Trước
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onclick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages - 1}
-      >
-        Sau <ChevronRight class="h-4 w-4 ml-1" />
-      </Button>
-    </div>
-  </div>
+  {/if}
 </div>
 
 <SubmissionDetail bind:isSheetOpen {selectedSubmission} {campaign} />
