@@ -38,11 +38,16 @@ export interface CampaignDetail {
 export interface Submission {
   userPrompts: string;
   id: string;
+  fullName: string;
   aiAssessment: Record<string, any>;
   answer: Record<string, any>;
   score: number;
   submittedAt: string;
   summary: string;
+}
+
+export interface SubmissionWithStage extends Submission {
+  stageId: string;
 }
 
 export interface CampaignWithSubmission {
@@ -67,4 +72,11 @@ export type AiAssessment = {
     type: "positive" | "negative" | "neutral";
     comment: string;
   }[];
+};
+
+export type CampaignStage = {
+  id: string;
+  stageName: string;
+  campaignId: string;
+  position: number;
 };
