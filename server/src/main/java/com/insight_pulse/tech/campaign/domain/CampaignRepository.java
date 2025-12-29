@@ -28,7 +28,10 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
 
     // Tỷ lệ >= 8 của các submission trong tất cả các campaign của user
     @Query("""
-        SELECT (COUNT(CASE WHEN s.score >= 8 THEN 1 END) * 100.0 / NULLIF(COUNT(s), 0)) FROM Submission s 
+        SELECT 
+            COUNT(CASE WHEN s.score >= 8 THEN 1 END) * 100.0
+            / NULLIF(COUNT(s.score), 0)
+        FROM Submission s
         WHERE s.campaign.user.id = :userId
     """)
     Double calculateHightQualityRatio(@Param("userId") int userId);
@@ -58,5 +61,5 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
                 d.date ASC;
             """, nativeQuery = true)
     List<SubmissionChart> getSubmissionChartData(@Param("userId") int userId);
-    
+        
 }
