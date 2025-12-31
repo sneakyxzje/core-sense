@@ -4,34 +4,37 @@
   import { toast } from "svelte-sonner";
 
   let {
-    column,
+    column = $bindable(),
+    onSave,
   }: {
     column: CampaignStage;
     campaign: CampaignDetail;
+    onSave: (newName: string) => void;
   } = $props();
 
   let isEditing = $state(false);
   let editedName = $state(column.stageName);
   const handleSave = async () => {
     const stageName = editedName.trim();
-    console.log(stageName);
-    if (editedName.trim() !== "" && editedName !== column.stageName) {
-      try {
-        const ok = await api.patch(
-          `/campaigns/stages/${column.id}`,
-          { stageName: stageName },
-          fetch
-        );
-        column.stageName = stageName;
-      } catch (error) {
-        toast.error("Không thể lưu tên mới, thử lại sau nhé!");
-        editedName = column.stageName;
-      }
-    } else {
+    if (stageName === "" || stageName === column.stageName) {
       editedName = column.stageName;
+      isEditing = false;
+      return;
     }
+    try {
+      await api.patch(
+        `/campaigns/stages/${column.id}`,
+        { stageName: stageName },
+        fetch
+      );
 
-    isEditing = false;
+      onSave(stageName);
+    } catch (error) {
+      toast.error("Không thể lưu tên mới, thử lại sau nhé!");
+      editedName = column.stageName;
+    } finally {
+      isEditing = false;
+    }
   };
 
   function selectOnFocus(node: HTMLInputElement) {
