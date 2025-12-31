@@ -52,7 +52,7 @@ export interface SubmissionWithStage extends Submission {
 
 export interface CampaignWithSubmission {
   campaign: CampaignDetail;
-  submissions: PageResponse<Submission>;
+  submissions: PageResponse<SubmissionWithStage>;
 }
 
 export interface SubmissionDetail extends Submission {
