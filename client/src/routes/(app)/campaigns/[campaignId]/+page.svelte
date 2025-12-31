@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -125,9 +124,8 @@
         },
         fetch
       );
-
       const newStage = response;
-      columns.push(newStage);
+      columns = [...columns, newStage];
       toast.success("Đã tạo cột mới thành công");
     } catch (error) {
       toast.error("Không thể tạo cột, vui lòng thử lại");
@@ -302,7 +300,7 @@
       </div>
     {:else}
       <div class="absolute inset-0 overflow-auto">
-        <SubmissionKanban {submissions} {campaign} {columns} />
+        <SubmissionKanban {submissions} {campaign} bind:columns />
       </div>
     {/if}
   </div>
