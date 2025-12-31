@@ -2,88 +2,200 @@
   import type {
     CampaignDetail,
     CampaignStage,
-    Submission,
     SubmissionWithStage,
   } from "@src/lib/types/campaign";
-  import { formatRelativeTime } from "@src/lib/utils/FormatDate";
   import EditableHeader from "@src/routes/(app)/campaigns/[campaignId]/components/EditableHeader.svelte";
-  import { Ellipsis } from "lucide-svelte";
+  import { ArrowRightLeft, Ellipsis, Pencil, Trash2 } from "lucide-svelte";
+  import { dndzone, type DndEvent } from "svelte-dnd-action";
+  import { flip } from "svelte/animate";
+  import { api } from "@src/lib/utils/api";
+  import { toast } from "svelte-sonner";
+  import KanbanCard from "@src/routes/(app)/campaigns/[campaignId]/components/KanbanCard.svelte";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+  import * as Dialog from "$lib/components/ui/dialog/index.js";
+  import Button from "@src/lib/components/ui/button/button.svelte";
 
   let {
-    submissions,
+    submissions = $bindable(),
     campaign,
-    columns,
+    columns = $bindable(),
   }: {
     submissions: SubmissionWithStage[];
     campaign: CampaignDetail;
     columns: CampaignStage[];
   } = $props();
+  let dragSourceColumnId = $state<string | null>(null);
+  const flipDurationMs = 200;
+
+  function handleDndConsider(
+    columnId: string,
+    e: CustomEvent<DndEvent<SubmissionWithStage>>
+  ) {
+    const { items, info } = e.detail;
+    if (!dragSourceColumnId) {
+      const movedItem = submissions.find((s) => s.id === info.id);
+      dragSourceColumnId = movedItem?.stageId || null;
+    }
+    items.forEach((item) => {
+      item.stageId = columnId;
+    });
+
+    updateSubmissionsLocal(items, columnId);
+  }
+
+  async function handleDndFinalize(
+    columnId: string,
+    e: CustomEvent<DndEvent<SubmissionWithStage>>
+  ) {
+    const { items, info } = e.detail;
+
+    items.forEach((item) => {
+      item.stageId = columnId;
+    });
+    const isChangingColumn =
+      dragSourceColumnId !== null && dragSourceColumnId !== columnId;
+    updateSubmissionsLocal(items, columnId);
+    if (isChangingColumn) {
+      try {
+        await api.patch(
+          `/campaigns/stages/${info.id}/column`,
+          {
+            stageId: columnId,
+          },
+          fetch
+        );
+      } catch (error) {
+        toast.error("Lỗi cập nhật server, đang hoàn tác...");
+      }
+    }
+    dragSourceColumnId = null;
+  }
+
+  function updateSubmissionsLocal(
+    newColumnItems: SubmissionWithStage[],
+    columnId: string
+  ) {
+    const otherSubmissions = submissions.filter((s) => s.stageId !== columnId);
+    submissions = [...otherSubmissions, ...newColumnItems];
+  }
+
+  let open = $state(false);
+  let stageToDelete = $state<string | null>(null);
+  let targetStageId = $state<string | null>(null);
+  const availableStages = $derived(
+    columns.filter((s) => s.id !== stageToDelete)
+  );
+  const handleDelete = (columnId: string) => {
+    stageToDelete = columnId;
+    if (submissions.some((s) => s.stageId === columnId)) {
+      open = true;
+    } else {
+      executeDelete(columnId, null);
+    }
+  };
+
+  const executeDelete = async (
+    stageToDelete: string | null,
+    targetStage: string | null
+  ) => {
+    console.log("toDelete", stageToDelete);
+    console.log("target", targetStage);
+    try {
+      await api.delete(
+        `/submission/stages/delete`,
+        { stageToDelete: stageToDelete, targetStage: targetStage },
+        fetch
+      );
+
+      open = false;
+      columns = columns.filter((c) => c.id !== stageToDelete);
+      if (targetStage) {
+        submissions = submissions.map((s) =>
+          s.stageId === stageToDelete ? { ...s, stageId: targetStage } : s
+        );
+      }
+    } catch (error) {
+      toast.error("Đã có lỗi xảy ra, xin vui lòng thử lại sau");
+    }
+  };
 </script>
 
 <div
   class="custom-scrollbar flex h-full w-full gap-4 overflow-x-auto px-2 pb-2 items-start"
 >
-  {#each columns as column (column.id)}
+  {#each columns as column, i (column.id)}
     <div class="flex h-full w-[320px] min-w-[320px] flex-col flex-shrink-0">
-      <div class="mb-2 px-1 flex items-center justify-between">
+      <div class="mb-2 px-1 flex items-center justify-between flex-none">
         <div class="flex items-center gap-2">
-          <EditableHeader {column} {campaign} />
+          <EditableHeader
+            onSave={(newName) => {
+              column.stageName = newName;
+            }}
+            {column}
+            {campaign}
+          />
         </div>
-        <Ellipsis class="w-4 h-4 text-muted-foreground cursor-pointer" />
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class="p-1 hover:bg-base-3 rounded-md transition-colors outline-none"
+          >
+            <Ellipsis class="w-4 h-4 text-muted-foreground cursor-pointer" />
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Content
+            align="end"
+            class="w-48 bg-base-2 border-base-border-1"
+          >
+            <DropdownMenu.Group>
+              <DropdownMenu.Item
+                class="flex items-center gap-2 cursor-pointer py-2 px-3 text-sm"
+              >
+                <Pencil class="w-3.5 h-3.5" />
+                <span>Đổi tên cột</span>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Item
+                class="flex items-center gap-2 cursor-pointer py-2 px-3 text-sm"
+              >
+                <ArrowRightLeft class="w-3.5 h-3.5" />
+                <span>Di chuyển cột</span>
+              </DropdownMenu.Item>
+            </DropdownMenu.Group>
+
+            <DropdownMenu.Separator class="bg-base-border-1" />
+
+            <DropdownMenu.Item
+              class="flex items-center gap-2 cursor-pointer py-2 px-3 text-sm text-red-500 focus:text-red-500 focus:bg-red-500/10"
+              onclick={() => handleDelete(column.id)}
+            >
+              <Trash2 class="w-3.5 h-3.5" />
+              <span>Xóa cột</span>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
 
       <div
-        class="custom-scrollbar flex-1 flex flex-col gap-3 p-3 border border-base-border-2 bg-base-2 rounded-xl overflow-y-auto shadow-sm"
+        class="custom-scrollbar flex-1 flex flex-col gap-3 p-3 border border-base-border-2 bg-base-2 rounded-xl overflow-y-auto shadow-sm min-h-[150px]"
+        use:dndzone={{
+          items: submissions.filter((s) => s.stageId === column.id),
+          flipDurationMs,
+          type: "submission",
+          dropTargetStyle: {
+            outline: "2px dashed var(--primary-1)",
+            borderRadius: "12px",
+          },
+        }}
+        onconsider={(e) => handleDndConsider(column.id, e)}
+        onfinalize={(e) => handleDndFinalize(column.id, e)}
       >
         {#each submissions.filter((s) => s.stageId === column.id) as s (s.id)}
-          <button
-            class="group flex flex-col cursor-pointer w-full text-left bg-base-3 border border-transparent hover:border-base-border-1 rounded-lg p-4 shadow-sm transition-all hover:shadow-md flex-shrink-0"
-          >
-            <div class="mb-2">
-              <span
-                class="text-xs font-mono text-muted-foreground uppercase tracking-tighter"
-              >
-                {campaign.name}
-              </span>
-              <h4
-                class="font-semibold text-sm text-base-fg-1 mt-0.5 leading-snug"
-              >
-                Ứng viên: {s.fullName}
-              </h4>
-            </div>
-
-            <p class="text-xs text-muted-foreground line-clamp-3 mb-3 italic">
-              {s.aiAssessment || "Chưa có đánh giá từ AI..."}
-            </p>
-
-            <div class="flex items-center gap-2 mb-3">
-              <span
-                class="bg-blue-500/10 text-blue-500 text-[10px] px-1.5 py-0.5 rounded font-medium"
-                >New</span
-              >
-              {#if s.aiAssessment}
-                <span
-                  class="bg-green-500/10 text-green-500 text-[10px] px-1.5 py-0.5 rounded font-medium"
-                  >AI Rated</span
-                >
-              {/if}
-            </div>
-
-            <div
-              class="mt-auto flex items-center justify-between pt-2 border-t border-base-border-1/50 w-full"
-            >
-              <span
-                class="text-primary-1 text-[11px] font-bold group-hover:underline"
-                >Chi tiết</span
-              >
-              <span class="text-[10px] text-muted-foreground">
-                {formatRelativeTime(s.submittedAt)}
-              </span>
-            </div>
-          </button>
+          <div animate:flip={{ duration: flipDurationMs }}>
+            <KanbanCard {s} {campaign} />
+          </div>
         {:else}
           <div
-            class="flex flex-col items-center justify-center py-10 opacity-40"
+            class="flex flex-col items-center justify-center py-10 opacity-40 pointer-events-none"
           >
             <p class="text-xs italic">Trống</p>
           </div>
@@ -91,6 +203,43 @@
       </div>
     </div>
   {/each}
+  <Dialog.Root bind:open>
+    <Dialog.Content class="bg-base-3 border-base-border-1">
+      <Dialog.Header>
+        <Dialog.Title>Cột này đang có ứng viên!</Dialog.Title>
+        <Dialog.Description>
+          Bạn cần di chuyển ứng viên sang một cột khác trước khi xóa cột này.
+          Hành động sẽ không thể hoàn tác.
+        </Dialog.Description>
+      </Dialog.Header>
+
+      <div class="grid gap-4 py-4">
+        <label for="target-stage">Chọn cột đích:</label>
+        <select
+          id="target-stage"
+          bind:value={targetStageId}
+          class="flex h-10 w-full rounded-md border-base-border-1 bg-base-2 px-3"
+        >
+          {#each availableStages as stage}
+            <option value={stage.id}>{stage.stageName}</option>
+          {/each}
+        </select>
+      </div>
+
+      <Dialog.Footer>
+        <Button class="border-base-border-2" onclick={() => (open = false)}
+          >Hủy</Button
+        >
+        <Button
+          class="bg-negative-1"
+          disabled={!targetStageId}
+          onclick={() => executeDelete(stageToDelete, targetStageId)}
+        >
+          Xác nhận di chuyển và xóa
+        </Button>
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog.Root>
 </div>
 
 <style>
@@ -104,8 +253,5 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: rgba(120, 120, 120, 0.3);
     border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(120, 120, 120, 0.5);
   }
 </style>
