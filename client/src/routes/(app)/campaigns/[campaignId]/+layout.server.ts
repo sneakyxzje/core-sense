@@ -18,7 +18,7 @@ export const load: LayoutServerLoad = async ({ fetch, params, url }) => {
     ),
   ]);
 
-  const campaignName = campaignWithSubmission.campaign.name;
+  const campaignName = campaignWithSubmission.campaign?.name;
   return {
     campaign: campaignWithSubmission.campaign,
     submissions: campaignWithSubmission.submissions,
