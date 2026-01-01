@@ -1,6 +1,6 @@
 export type FormQuestion = {
   id: string;
-  type: "text" | "number" | "select" | "textarea" | "email";
+  type: "text" | "number" | "select" | "textarea" | "email" | "files";
   label: string;
   placeholder?: string;
   required: boolean;
