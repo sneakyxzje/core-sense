@@ -3,14 +3,14 @@ package com.insight_pulse.tech.submission.dto;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AnswerDetail {
-    @JsonProperty("sys-name")    
+    @JsonAlias({"sys-name", "sysName"}) 
     private String sysName;
 
-    @JsonProperty("sys-email")
+    @JsonAlias({"sys-email", "sysEmail"}) 
     private String sysEmail;
 
     private Map<String, Object> dynamicFields = new HashMap<>();
