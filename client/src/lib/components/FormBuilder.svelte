@@ -151,6 +151,7 @@
                       <option value="textarea">Văn bản dài</option>
                       <option value="number">Số</option>
                       <option value="select">Trắc nghiệm</option>
+                      <option value="files">PDF</option>
                     </select>
                   </div>
                 </div>
