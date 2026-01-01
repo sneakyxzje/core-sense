@@ -111,7 +111,7 @@
     isComparisonOpen = true;
   };
 
-  let viewMode = $state("table");
+  let viewMode = $state("kanban");
 
   let columns = $state(campaignStages || []);
   const addColumn = async () => {
