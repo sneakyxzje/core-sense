@@ -31,14 +31,15 @@
       : []
   );
   const displayAnswers = $derived(
-    mappedAnswers.map((item) => {
-      const highlights = analysisResult?.highlights || [];
-
-      return {
-        ...item,
-        htmlValue: renderHighlightedText(item.value, highlights),
-      };
-    })
+    mappedAnswers
+      .filter((item) => item.type !== "files" && item.id !== "files")
+      .map((item) => {
+        const highlights = analysisResult?.highlights || [];
+        return {
+          ...item,
+          htmlValue: renderHighlightedText(item.value, highlights),
+        };
+      })
   );
   $effect(() => {
     if (submission && submission.aiAssessment) {
@@ -81,7 +82,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="space-y-6">
-      <Card.Root>
+      <Card.Root class="border border-base-border-1">
         <Card.Header>
           <Card.Title class="flex items-center gap-2 text-lg">
             <User class="size-5 text-primary" />
@@ -100,7 +101,7 @@
                   </p>
 
                   <div
-                    class="p-3 rounded-lg bg-accent/20 border border-accent/50 text-sm leading-relaxed"
+                    class="p-3 rounded-lg bg-accent/20 border border-base-border-1 text-sm leading-relaxed"
                   >
                     {#if item.value}
                       {@html item.htmlValue}
@@ -112,6 +113,40 @@
                   </div>
                 </div>
               {/each}
+              {#if submission?.cvUrl}
+                <div class="space-y-2 mb-6">
+                  <p
+                    class="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Resume
+                  </p>
+                  <div
+                    class="flex items-center justify-between p-4 rounded-xl bg-base-3 border border-base-border-1 group"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div>
+                        <p class="text-sm font-semibold">
+                          Resume của ứng viên: {submission.fullName || "null"}
+                        </p>
+                        <p class="text-xs text-muted-foreground uppercase">
+                          .PDF
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      href={submission.cvUrl}
+                      target="_blank"
+                      class="bg-primary-1 hover:bg-primary-hover text-base-1  transition-all"
+                    >
+                      Mở CV
+                    </Button>
+                  </div>
+                </div>
+                <Separator class="my-6" />
+              {/if}
             </div>
           </ScrollArea>
         </Card.Content>
@@ -120,12 +155,11 @@
 
     <div class="space-y-6">
       {#if !analysisResult}
-        <Card.Root>
+        <Card.Root class="border border-base-border-1">
           <Card.Content class="pt-6">
             <div
               class="flex flex-col items-center justify-center space-y-4 text-center"
             >
-              <BrainCircuit class="size-12 text-muted-foreground/50" />
               <div class="space-y-1">
                 <h3 class="font-semibold">Chưa có đánh giá</h3>
                 <p class="text-sm text-muted-foreground">
@@ -143,13 +177,12 @@
               <Button
                 onclick={analyze}
                 disabled={isAnalyzing}
-                class="w-full sm:w-auto min-w-[200px]"
+                class="w-full sm:w-auto bg-primary-1 text-primary-fg-1 hover:bg-primary-hover min-w-[200px]"
               >
                 {#if isAnalyzing}
                   <Loader class="size-4 mr-2 animate-spin" />
                   Đang phân tích...
                 {:else}
-                  <BrainCircuit class="size-4 mr-2" />
                   Bắt đầu đánh giá ngay
                 {/if}
               </Button>
@@ -160,7 +193,7 @@
 
       {#if analysisResult}
         <Card.Root
-          class="border-primary/20 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500"
+          class="border border-base-border-1 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           <Card.Header>
             <Card.Title
@@ -184,7 +217,7 @@
           </Card.Header>
           <Card.Content class="space-y-6">
             <div
-              class="flex items-center justify-between p-4 bg-primary/10 rounded-xl border border-primary/20"
+              class="flex items-center justify-between p-4 bg-primary/10 rounded-xl border border-base-border-1"
             >
               <span class="font-medium">Đánh giá chung:</span>
               <div class="flex items-center gap-2">
