@@ -61,4 +61,10 @@ public class Submission {
     @ManyToOne
     @JoinColumn(name ="current_stage_id")
     private CampaignStage currentStage;
+
+    @Column(name = "is_starred", nullable = false, columnDefinition = "boolean default false")
+    private boolean starred = false; 
+
+    @Column(name = "cv_url", length = 500)
+    private String cvUrl;
 }
