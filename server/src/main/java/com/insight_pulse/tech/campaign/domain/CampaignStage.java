@@ -24,4 +24,12 @@ public class CampaignStage {
     @ManyToOne
     @JoinColumn(name = "campaign_id")
     private Campaign campaign;
+
+    public static CampaignStage create(String stageName, Integer position, Campaign campaign) {
+        CampaignStage campaignStage = new CampaignStage();
+        campaignStage.setStageName(stageName);
+        campaignStage.setPosition(position);
+        campaignStage.setCampaign(campaign);
+        return campaignStage;
+    }
 }
