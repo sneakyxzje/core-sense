@@ -66,7 +66,7 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
         return callGeminiApi(comparisonPrompt);
         } catch (Exception e) {
             e.printStackTrace();
-            return new GeminiResponse("Lỗi so sánh: " + e.getMessage(), "Không có dữ liệu", 0.0, Collections.emptyList());
+            return new GeminiResponse("Lỗi so sánh: " + e.getMessage(),"K có dữ liệu","K có dữ liệu", "Không có dữ liệu", 0.0, Collections.emptyList());
         }
     }
     private GeminiResponse callGeminiApi(String prompt) throws Exception {
@@ -118,13 +118,13 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
                 - Nếu [BỐI CẢNH] là "Tuyển dụng IT" mà [CÂU TRẢ LỜI] nói về "Nấu ăn/Thể thao/Vấn đề không liên quan".
                 -> KẾT LUẬN NGAY: Đây là nội dung rác hoặc lạc đề.
                 -> HÀNH ĐỘNG: Chấm 0-2 điểm. Nhận xét thẳng thắn: "Câu trả lời không đúng trọng tâm câu hỏi".
-
+                - Nếu [CÂU TRẢ LỜI] không liên quan đến [BỐI CẢNH] trả về 0 điểm và nhận xét "Lạc chủ đề" ngay lập tức không cần giải thích gì thêm
                 --- PHẦN 3: PHONG CÁCH GIAO TIẾP (QUAN TRỌNG VỚI NGƯỜI DÙNG) ---
                 Dù logic bên trong chặt chẽ, nhưng Output trả ra phải tuân thủ:
                 1. ĐI THẲNG VÀO VẤN ĐỀ: Bỏ qua các câu sáo rỗng như "Ứng viên đã điền form", "Dựa trên dữ liệu". Hãy bắt đầu nhận xét ngay lập tức.
                 2. NGÔN NGỮ QUẢN LÝ: Dùng từ ngữ mang tính đánh giá năng lực. Ví dụ: "Hồ sơ yếu", "Thiếu minh chứng", "Tiềm năng cao".
                 3. HIGHLIGHTS THÔNG MINH: Khi trích dẫn, phần 'comment' phải giải thích tại sao nó tốt/xấu đối với vị trí đang tuyển, không giải thích luật lệ của form.
-
+                4. Không cần biết họ có điền đủ hay không, chỉ quan tâm rằng họ có điền đúng với bối cảnh và nội dung chính mà form cũng như các yêu cầu mà quản lý đưa ra
                 --- INPUT DATA ---
                 1. [BỐI CẢNH CÂU HỎI]: %s
                 2. [CÂU TRẢ LỜI]: %s
@@ -134,6 +134,8 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
                 Hãy trả về duy nhất 1 object JSON, không kèm theo bất kỳ lời dẫn nào khác:
                 {
                 "summary": "Tóm tắt cực ngắn (dưới 40 từ), súc tích để đọc lướt.",
+                "positive": Tóm tắt nhanh về điểm mạnh của ứng viên ( dưới 30 từ )
+                "negative": Tóm tắt các điểm yếu của ứng viên ( dưới 40 từ )
                 "aiAssesment": "Nhận xét chi tiết. Nếu dữ liệu tốt, hãy phân tích sâu. Nếu dữ liệu lạc đề/vi phạm, hãy giải thích lý do bằng ngôn ngữ tự nhiên.",
                 "score": <Số nguyên 0-10. Nếu lạc đề/vi phạm quy tắc bảo mật thì auto 0>,
                 "highlights": [
@@ -171,7 +173,7 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
             JsonNode root = objectMapper.readTree(response);
             
             if (!root.has("candidates")) {
-                 return new GeminiResponse("AI không trả lời hoặc bị chặn.", "Không có dữ liệu tóm tắt", 0.0, Collections.emptyList());
+                 return new GeminiResponse("AI không trả lời hoặc bị chặn.","Không có dữ liệu","Không có dữ liệu" ,"Không có dữ liệu tóm tắt", 0.0, Collections.emptyList());
             }
 
             String aiJsonText = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
@@ -182,7 +184,7 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
 
         } catch (Exception e) {
             e.printStackTrace(); 
-            return new GeminiResponse("Lỗi hệ thống: " + e.getMessage(),"Không có dữ liệu tóm tắt", 0.0, Collections.emptyList());
+            return new GeminiResponse("Lỗi hệ thống: " + e.getMessage(),"Không có dữ liệu tóm tắt", "Kco dữ liệu", "K có dữ liệu", 0.0, Collections.emptyList());
         }
     }
 }
