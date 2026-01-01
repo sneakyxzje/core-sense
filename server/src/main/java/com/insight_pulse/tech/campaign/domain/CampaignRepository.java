@@ -61,5 +61,5 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
                 d.date ASC;
             """, nativeQuery = true)
     List<SubmissionChart> getSubmissionChartData(@Param("userId") int userId);
-        
+    
 }
