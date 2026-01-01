@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
@@ -56,7 +57,12 @@ public class CampaignService {
             request.formSchema(), 
             user
         );
-        return campaignMapper.toResponse(campaignRepository.save(campaign));
+        Campaign savedCampaign = campaignRepository.save(campaign);
+
+        CampaignStage campaignStage = CampaignStage.create("Cột mới", 0, savedCampaign);
+        campaignStageRepository.save(campaignStage);
+
+        return campaignMapper.toResponse(savedCampaign);
     }
 
     public CampaignStageResponse createStage(String campaignId, CampaignStageRequest request) {
