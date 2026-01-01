@@ -5,7 +5,17 @@
     SubmissionWithStage,
   } from "@src/lib/types/campaign";
   import EditableHeader from "@src/routes/(app)/campaigns/[campaignId]/components/EditableHeader.svelte";
-  import { ArrowRightLeft, Ellipsis, Pencil, Trash2 } from "lucide-svelte";
+  import {
+    ArrowRightLeft,
+    Bot,
+    Download,
+    Ellipsis,
+    Eye,
+    Mail,
+    Pencil,
+    Star,
+    Trash2,
+  } from "lucide-svelte";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import { api } from "@src/lib/utils/api";
@@ -14,6 +24,8 @@
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import Button from "@src/lib/components/ui/button/button.svelte";
+  import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
+  import { goto } from "$app/navigation";
 
   let {
     submissions = $bindable(),
@@ -118,6 +130,25 @@
       toast.error("Đã có lỗi xảy ra, xin vui lòng thử lại sau");
     }
   };
+
+  const handleStarred = async (submissionId: string) => {
+    const index = submissions.findIndex((s) => s.id === submissionId);
+    if (index === -1) return;
+
+    const oldStatus = submissions[index].starred;
+    submissions[index].starred = !oldStatus;
+
+    try {
+      await api.patch(
+        `/submission/${submissionId}/star`,
+        { starred: !oldStatus },
+        fetch
+      );
+    } catch (error) {
+      submissions[index].starred = oldStatus;
+      toast.error("Lỗi cập nhật, vui lòng thử lại");
+    }
+  };
 </script>
 
 <div
@@ -191,7 +222,76 @@
       >
         {#each submissions.filter((s) => s.stageId === column.id) as s (s.id)}
           <div animate:flip={{ duration: flipDurationMs }}>
-            <KanbanCard {s} {campaign} />
+            <ContextMenu.Root>
+              <ContextMenu.Trigger>
+                <KanbanCard {s} {campaign} />
+              </ContextMenu.Trigger>
+
+              <ContextMenu.Content class="w-64 bg-base-2 border-base-border-1">
+                <ContextMenu.Group>
+                  <ContextMenu.Label
+                    class="text-[10px] uppercase tracking-wider opacity-50"
+                    >AI Assistant</ContextMenu.Label
+                  >
+                  <ContextMenu.Item
+                    class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                  >
+                    <Bot />
+                    <span>Tóm tắt nhanh bằng AI</span>
+                  </ContextMenu.Item>
+                </ContextMenu.Group>
+
+                <ContextMenu.Separator class="bg-base-border-1" />
+
+                <ContextMenu.Group>
+                  <ContextMenu.Item
+                    class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                  >
+                    <Mail />
+                    <span>Gửi email cho ứng viên</span>
+                  </ContextMenu.Item>
+                  <ContextMenu.Item
+                    class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                    onclick={() => handleStarred(s.id)}
+                  >
+                    <Star
+                      class="w-4 h-4 {s.starred
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : ''}"
+                    />
+                    {s.starred ? "Bỏ đánh dấu ưu tiên" : "Đánh dấu ưu tiên"}
+                  </ContextMenu.Item>
+                </ContextMenu.Group>
+
+                <ContextMenu.Separator class="bg-base-border-1" />
+
+                <ContextMenu.Group>
+                  <ContextMenu.Item
+                    class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                    onclick={() =>
+                      goto(`/campaigns/${campaign.id}/submissions/${s.id}`)}
+                  >
+                    <Eye />
+                    <span>Xem chi tiết hồ sơ</span>
+                  </ContextMenu.Item>
+                  <ContextMenu.Item
+                    class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                  >
+                    <Download />
+                    <span>Tải xuống CV</span>
+                  </ContextMenu.Item>
+                </ContextMenu.Group>
+
+                <ContextMenu.Separator class="bg-base-border-1" />
+
+                <ContextMenu.Item
+                  class="gap-2 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                >
+                  <Trash2 />
+                  <span>Loại bỏ ứng viên</span>
+                </ContextMenu.Item>
+              </ContextMenu.Content>
+            </ContextMenu.Root>
           </div>
         {:else}
           <div
