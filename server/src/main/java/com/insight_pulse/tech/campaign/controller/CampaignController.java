@@ -25,10 +25,12 @@ import com.insight_pulse.tech.campaign.dto.CampaignStageResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignStats;
 import com.insight_pulse.tech.campaign.dto.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.campaign.dto.UpdateCampaignRequest;
+import com.insight_pulse.tech.campaign.dto.UpdateStageColumnRequest;
 import com.insight_pulse.tech.campaign.dto.UpdateStageNameRequest;
 import com.insight_pulse.tech.campaign.service.CampaignService;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
+import com.insight_pulse.tech.submission.dto.SubmissionResponse;
 import com.insight_pulse.tech.submission.service.SubmissionService;
 
 import jakarta.validation.Valid;
@@ -106,5 +108,10 @@ public class CampaignController {
     public ResponseEntity<CampaignStageResponse> updateStageName(@PathVariable String stageId, @RequestBody UpdateStageNameRequest request) {
         System.out.println("Request: " + request);
         return ResponseEntity.ok(campaignService.updateStageName(stageId, request));
+    }
+
+    @PatchMapping("/stages/{submissionId}/column")
+    public ResponseEntity<SubmissionResponse> updateStageColumn(@PathVariable String submissionId, @RequestBody UpdateStageColumnRequest request) {
+        return ResponseEntity.ok(submissionService.updateStageColumn(submissionId, request));
     }
 }
