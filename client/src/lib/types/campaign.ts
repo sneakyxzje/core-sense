@@ -48,6 +48,7 @@ export interface Submission {
 
 export interface SubmissionWithStage extends Submission {
   stageId: string;
+  starred: boolean;
 }
 
 export interface CampaignWithSubmission {
@@ -57,6 +58,7 @@ export interface CampaignWithSubmission {
 
 export interface SubmissionDetail extends Submission {
   snapshotSchema: FormQuestion[];
+  cvUrl: string;
 }
 
 export interface CampaignPublic {
