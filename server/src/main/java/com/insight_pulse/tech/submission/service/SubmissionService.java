@@ -11,32 +11,42 @@ import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
+import com.insight_pulse.tech.campaign.domain.CampaignStage;
+import com.insight_pulse.tech.campaign.domain.CampaignStageRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStatus;
 import com.insight_pulse.tech.campaign.domain.FormQuestion;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
+import com.insight_pulse.tech.campaign.dto.CampaignStageResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.campaign.dto.PublicCampaignResponse;
+import com.insight_pulse.tech.campaign.dto.UpdateStageColumnRequest;
 import com.insight_pulse.tech.campaign.mapper.CampaignMapper;
+import com.insight_pulse.tech.cloudinary.CloudinaryService;
 import com.insight_pulse.tech.gemini.dto.GeminiRequest;
 import com.insight_pulse.tech.gemini.dto.GeminiResponse;
 import com.insight_pulse.tech.gemini.service.GeminiService;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
+import com.insight_pulse.tech.submission.dto.AnswerDetail;
+import com.insight_pulse.tech.submission.dto.DeleteStageRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionEvent;
 import com.insight_pulse.tech.submission.dto.SubmissionRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
+import com.insight_pulse.tech.submission.dto.SubmissionStarRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionSummary;
 import com.insight_pulse.tech.submission.mapper.SubmissionMapper;
 import com.insight_pulse.tech.utils.PageableUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -52,14 +62,23 @@ public class SubmissionService {
     private final CurrentUserProvider currentUserProvider;
     private final CampaignMapper campaignMapper;
     private final SubmissionMapper submissionMapper;
-
+    private final CampaignStageRepository campaignStageRepository;
+    private final CloudinaryService cloudinaryService; 
 
     @Transactional
-    public void submitForm(String campaignId, SubmissionRequest request) {
+    public void submitForm(String campaignId, SubmissionRequest request, MultipartFile file) {
         Campaign campaign = campaignRepository.findById(campaignId).orElseThrow(() -> new RuntimeException("Campaign not found"));
         if (campaign.getStatus() != CampaignStatus.ACTIVE) {
             throw new RuntimeException("Campaign này đã đóng hoặc chưa kích hoạt!");
         }
+        CampaignStage defaultStage = campaignStageRepository.findByCampaignIdAndPosition(campaignId, 0).orElseThrow(() -> new RuntimeException("Stage not found"));
+
+        Map<String, Object> uploadResult = cloudinaryService.uploadFile(file);
+        AnswerDetail answers = request.answers();
+
+        System.out.println("Debug AnswerDetail: " + answers); 
+        String cvUrls =uploadResult.get("secure_url").toString();
+
         List<FormQuestion> schemaSnapshot = campaign.getFormSchema();
         Submission submission = new Submission();
         submission.setFullname(request.answers().getSysName());
@@ -67,6 +86,8 @@ public class SubmissionService {
         submission.setCampaign(campaign);
         submission.setAnswers(request.answers().getAllAnswers());
         submission.setSchemaSnapshot(schemaSnapshot);
+        submission.setCvUrl(cvUrls);
+        submission.setCurrentStage(defaultStage);
         submissionRepository.save(submission);
         campaignRepository.incrementTotalSubmissions(campaignId);
 
@@ -137,6 +158,45 @@ public class SubmissionService {
         return submissionMapper.toDetailResponse(submission, userPrompts);
     }
 
+    @Transactional
+    public SubmissionResponse updateStageColumn(String submissionId, UpdateStageColumnRequest request) {
+        int userId = currentUserProvider.getCurrentUserId();
+        Submission submission = submissionRepository.findById(submissionId)
+        .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cột này"));
+        CampaignStage campaignStage = campaignStageRepository.findById(request.stageId()).orElseThrow(() -> new EntityNotFoundException("Stage not found"));
+        if (submission.getCampaign().getUser().getId() != userId) {
+        throw new RuntimeException("Permission denied");
+    }
+        if (campaignStage.getCampaign().getUser().getId() != userId) {
+            throw new RuntimeException("Bạn không có quyền sửa cột này");
+        }
+        submission.setCurrentStage(campaignStage);
+        return submissionMapper.toResponse(submission);
+    }
+
+    // 
+
+    @Transactional
+    public void deleteStageColumn(DeleteStageRequest request) {
+        CampaignStage stage = campaignStageRepository.findById(request.stageToDelete())
+            .orElseThrow(() -> new RuntimeException("Stage not found"));
+        String campaignId = stage.getCampaign().getId();
+        int deletedPos = stage.getPosition();
+        long submissionCount = submissionRepository.countByCurrentStageId(request.stageToDelete());
+        if(submissionCount > 0) {
+            if (request.targetStage() == null) {
+                throw new IllegalArgumentException("Phải chọn cột đích để chuyển ứng viên!");
+            }
+            submissionRepository.migrateSubmissions(request.stageToDelete(), request.targetStage());  
+        }
+        campaignStageRepository.deleteById(request.stageToDelete());
+        campaignStageRepository.shiftPositions(campaignId, deletedPos);
+    }
+
+    @Transactional
+    public void toggleStarredStatus(String submissionId, SubmissionStarRequest request) {
+        submissionRepository.updateStarredStatus(submissionId, request.starred());
+    } 
 
     @Transactional
     public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
