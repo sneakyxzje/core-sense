@@ -13,5 +13,7 @@ public record SubmissionDetailResponse(
     Map<String, Object> answer,
     Double score,
     LocalDateTime submittedAt,
-    List<FormQuestion> snapshotSchema
+    List<FormQuestion> snapshotSchema,
+    String cvUrl,
+    String fullName
 ) {}
