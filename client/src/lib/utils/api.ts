@@ -45,13 +45,14 @@ async function request<T>(
   isRetry = false
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
+  const headers = { ...options.headers } as Record<string, string>;
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   const finalOptions = {
     ...options,
     credentials: "include" as RequestCredentials,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers: headers,
   };
 
   const response = await customFetch(url, finalOptions);
@@ -80,9 +81,13 @@ export const api = {
     data: D,
     customFetch: Fetch = fetch
   ): Promise<T> => {
+    const isFormData = data instanceof FormData;
     return request<T>(
       endpoint,
-      { method: "POST", body: JSON.stringify(data) },
+      {
+        method: "POST",
+        body: isFormData ? (data as any) : JSON.stringify(data),
+      },
       customFetch
     );
   },
