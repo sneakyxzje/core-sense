@@ -4,14 +4,7 @@
   import Input from "@src/lib/components/ui/input/input.svelte";
   import Label from "@src/lib/components/ui/label/label.svelte";
 
-  import {
-    BrainCircuit,
-    Eye,
-    Info,
-    ListChecks,
-    Pencil,
-    Plus,
-  } from "lucide-svelte";
+  import { Eye, Info, ListChecks, Pencil, Plus } from "lucide-svelte";
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
   import { createCampaign } from "@src/lib/api/campaign";
   import { goto } from "$app/navigation";
