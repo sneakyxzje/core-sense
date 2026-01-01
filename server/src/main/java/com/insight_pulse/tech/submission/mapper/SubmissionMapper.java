@@ -30,7 +30,9 @@ public class SubmissionMapper {
             s.getAnswers(),
             s.getScore(),
             s.getSubmittedAt(),
-            s.getSchemaSnapshot()
+            s.getSchemaSnapshot(),
+            s.getCvUrl(),
+            s.getFullname()
         );
     }
 }
