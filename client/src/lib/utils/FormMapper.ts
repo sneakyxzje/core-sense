@@ -7,12 +7,16 @@ export const getMappedAnswers = (
   if (!answer) return [];
   if (formSchema && formSchema.length > 0) {
     return formSchema.map((q) => ({
+      id: q.id,
+      type: q.type,
       label: q.label,
       value: answer[q.id] ?? "N/A",
     }));
   }
   return Object.entries(answer).map(([key, value]) => ({
+    id: key,
     label: key,
+    type: "text",
     value: value ?? "N/A",
   }));
 };
