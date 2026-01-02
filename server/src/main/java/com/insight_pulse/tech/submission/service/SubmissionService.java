@@ -22,7 +22,6 @@ import com.insight_pulse.tech.campaign.domain.CampaignStageRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStatus;
 import com.insight_pulse.tech.campaign.domain.FormQuestion;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
-import com.insight_pulse.tech.campaign.dto.CampaignStageResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.campaign.dto.PublicCampaignResponse;
 import com.insight_pulse.tech.campaign.dto.UpdateStageColumnRequest;
@@ -31,10 +30,10 @@ import com.insight_pulse.tech.cloudinary.CloudinaryService;
 import com.insight_pulse.tech.gemini.dto.GeminiRequest;
 import com.insight_pulse.tech.gemini.dto.GeminiResponse;
 import com.insight_pulse.tech.gemini.service.GeminiService;
+import com.insight_pulse.tech.pdf.PdfExtractor;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
-import com.insight_pulse.tech.submission.dto.AnswerDetail;
 import com.insight_pulse.tech.submission.dto.DeleteStageRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
@@ -64,6 +63,8 @@ public class SubmissionService {
     private final SubmissionMapper submissionMapper;
     private final CampaignStageRepository campaignStageRepository;
     private final CloudinaryService cloudinaryService; 
+    private final PdfExtractor pdfExtractor;
+
 
     @Transactional
     public void submitForm(String campaignId, SubmissionRequest request, MultipartFile file) {
@@ -74,9 +75,6 @@ public class SubmissionService {
         CampaignStage defaultStage = campaignStageRepository.findByCampaignIdAndPosition(campaignId, 0).orElseThrow(() -> new RuntimeException("Stage not found"));
 
         Map<String, Object> uploadResult = cloudinaryService.uploadFile(file);
-        AnswerDetail answers = request.answers();
-
-        System.out.println("Debug AnswerDetail: " + answers); 
         String cvUrls =uploadResult.get("secure_url").toString();
 
         List<FormQuestion> schemaSnapshot = campaign.getFormSchema();
@@ -202,11 +200,21 @@ public class SubmissionService {
     public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Not found"));
+        
+        String extractCV = "";
+        if (submission.getCvUrl() != null && !submission.getCvUrl().isEmpty()) {
+            extractCV = pdfExtractor.extractTextFromUrl(submission.getCvUrl());
+        }
+
+        if (extractCV == null || extractCV.trim().isEmpty()) {
+            System.err.println("WARNING: Cannot extract PDF: " + submissionId);
+        }
 
         GeminiRequest request = new GeminiRequest(
              submission.getSchemaSnapshot(),
              submission.getAnswers(),
-             userPrompt
+             userPrompt,
+             extractCV
         );
 
         GeminiResponse aiResult = geminiService.analyze(request);
@@ -233,12 +241,16 @@ public class SubmissionService {
         if (submissions.size() < 2) {
             throw new IllegalArgumentException("Cần ít nhất 2 phản hồi để so sánh");
         }
-
-        List<GeminiRequest> geminiRequest = submissions.stream()
-        .map((s) -> new GeminiRequest(
-            s.getSchemaSnapshot(),
-            s.getAnswers(), ""
-        )).toList();
+        List<GeminiRequest> geminiRequest = submissions.parallelStream()
+        .map((s) -> {
+            String extractCV =  pdfExtractor.extractTextFromUrl(s.getCvUrl());
+            return new GeminiRequest(
+                s.getSchemaSnapshot(),
+                s.getAnswers(),
+                "",
+                extractCV
+            );
+        }).toList();
 
         GeminiResponse aiResult = geminiService.compare(geminiRequest);
         return aiResult;
