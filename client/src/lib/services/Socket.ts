@@ -1,7 +1,8 @@
 import { Client } from "@stomp/stompjs";
 
 export const createSocketClient = (
-  onMessageReceived: (payload: any) => void
+  onMessageReceived: (payload: any) => void,
+  onNotificationReceived?: (payload: any) => void
 ) => {
   const client = new Client({
     brokerURL: "ws://localhost:8080/ws",
@@ -19,6 +20,12 @@ export const createSocketClient = (
       if (message.body) {
         const data = JSON.parse(message.body);
         onMessageReceived(data);
+      }
+    });
+    client.subscribe("/user/queue/notifications", (message) => {
+      if (message.body) {
+        const data = JSON.parse(message.body);
+        onNotificationReceived?.(data);
       }
     });
   };
