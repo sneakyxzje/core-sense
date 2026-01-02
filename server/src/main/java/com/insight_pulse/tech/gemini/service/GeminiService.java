@@ -44,7 +44,6 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
             1. ĐỐI CHIẾU: So sánh trực tiếp các câu trả lời cho cùng một câu hỏi trong formSchema.
             2. ĐÁNH GIÁ: Xác định ai có câu trả lời sắc sảo, thực tế và phù hợp với bối cảnh hơn.
             3. TỔNG KẾT: Đưa ra nhận xét công tâm về sự khác biệt chính.
-
             --- OUTPUT FORMAT (STRICT JSON ONLY) ---
             Trả về duy nhất JSON theo cấu trúc sau (Khớp với GeminiResponse):
             {
@@ -97,7 +96,7 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
         try {
             String schemaJson = objectMapper.writeValueAsString(request.formSchema());
             String answerJson = objectMapper.writeValueAsString(request.answer());
-
+            String cvJson = request.resume();
             String finalPrompt = String.format("""
                 --- INSIGHT PULSE CORE: SECURITY & ANALYSIS PROTOCOL ---
                 
@@ -125,10 +124,32 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
                 2. NGÔN NGỮ QUẢN LÝ: Dùng từ ngữ mang tính đánh giá năng lực. Ví dụ: "Hồ sơ yếu", "Thiếu minh chứng", "Tiềm năng cao".
                 3. HIGHLIGHTS THÔNG MINH: Khi trích dẫn, phần 'comment' phải giải thích tại sao nó tốt/xấu đối với vị trí đang tuyển, không giải thích luật lệ của form.
                 4. Không cần biết họ có điền đủ hay không, chỉ quan tâm rằng họ có điền đúng với bối cảnh và nội dung chính mà form cũng như các yêu cầu mà quản lý đưa ra
+                5. KHÔNG NỊNH BỢ, THẲNG TAY CHẤM ĐIỂM KÉM NẾU NHƯỢC ĐIỂM QUÁ NHIỀU, hoặc không phù hợp với yêu cầu mà quản lý đưa ra
+                6. Hãy quan tâm đến yêu cầu của người quản lý, nếu họ đang muốn tuyển dụng 1 vị trí nào đó. Chỉ nhận xét và chấm điểm trên 
+                --- PHẦN 4: QUY TẮC CHẤM ĐIỂM DỰA TRÊN VỊ TRÍ (JOB MATCHING RULES) ---
+                Đây là bộ lọc quan trọng nhất để quyết định Score. Hãy thực hiện nghiêm ngặt:
+
+                1. TIÊU CHÍ TIÊN QUYẾT (TECH STACK MATCH): 
+                - Nếu [BỐI CẢNH/YÊU CẦU QUẢN LÝ] tuyển Java/Spring Boot mà [CV/CÂU TRẢ LỜI] chỉ có React/NodeJS hoặc các kỹ năng không liên quan.
+                -> HÀNH ĐỘNG: Chấm Score tối đa là 2 điểm (bất kể ứng viên đó có giỏi React đến đâu). 
+                - Nhận xét: "Lệch hoàn toàn định hướng kỹ thuật (Mismatch Tech Stack)".
+
+                2. SỐ NĂM KINH NGHIỆM (EXP VALIDATION): 
+                - So sánh số năm kinh nghiệm trong [CÂU TRẢ LỜI] và [CV]. Nếu có sự mâu thuẫn (ví dụ Form ghi 5 năm, CV thực tế chỉ có 2 năm).
+                -> HÀNH ĐỘNG: Trừ 3-5 điểm trực tiếp vào tổng điểm. 
+                - Nhận xét: "Dữ liệu kinh nghiệm thiếu trung thực hoặc không đồng nhất".
+
+                3. ĐIỂM CỘNG (BONUS): 
+                - Chỉ cho điểm từ 7 trở lên nếu ứng viên thỏa mãn ít nhất 80%% Tech Stack yêu cầu VÀ có minh chứng dự án cụ thể trong [CÂU TRẢ LỜI].
+
+                4. ĐỐI VỚI ỨNG VIÊN "LẠC ĐỀ": 
+                - Tuyệt đối không khen ngợi năng lực cá nhân của họ ở lĩnh vực khác. 
+                - Tập trung vào việc: "Tại sao họ không phù hợp với vị trí này".
                 --- INPUT DATA ---
                 1. [BỐI CẢNH CÂU HỎI]: %s
                 2. [CÂU TRẢ LỜI]: %s
-                3. [YÊU CẦU CỦA QUẢN LÝ]: "%s"
+                3. [NỘI DUNG CV TRÍCH XUẤT]: %s
+                4. [YÊU CẦU CỦA QUẢN LÝ]: "%s"
 
                 --- OUTPUT FORMAT (STRICT JSON ONLY) ---
                 Hãy trả về duy nhất 1 object JSON, không kèm theo bất kỳ lời dẫn nào khác:
@@ -149,6 +170,7 @@ public GeminiResponse compare(List<GeminiRequest> requests) {
     """, 
                 schemaJson, 
                 answerJson, 
+                cvJson,
                 request.userPrompt()
             );
 
