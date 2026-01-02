@@ -80,6 +80,24 @@
         >AI Rated</span
       >
     {/if}
+    {#if s.score}
+      {#if s.score <= 5}
+        <span
+          class="bg-canceled text-base-1 text-[10px] px-1.5 py-0.5 rounded font-medium"
+          >{s.score}/10</span
+        >
+      {:else if s.score > 5 && s.score < 8}
+        <span
+          class="bg-priority-medium text-base-1 text-[10px] px-1.5 py-0.5 rounded font-medium"
+          >{s.score}/10</span
+        >
+      {:else}
+        <span
+          class="bg-green-500/10 text-green-500 text-[10px] px-1.5 py-0.5 rounded font-medium"
+          >{s.score}/10</span
+        >
+      {/if}
+    {/if}
   </div>
 
   <div
