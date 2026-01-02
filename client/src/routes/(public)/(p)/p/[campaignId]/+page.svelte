@@ -21,15 +21,11 @@
     const formData = new FormData();
     let fileToUpload: File | null = null;
     const cleanAnswers = { ...answers };
-    const answersPayload = {
-      sysName: answers["sys-name"],
-      sysEmail: answers["sys-email"],
-      allAnswers: { ...answers },
-    };
+    const { "sys-name": sName, "sys-email": sEmail, ...others } = cleanAnswers;
     for (const key in answers) {
       if (answers[key] instanceof File) {
         fileToUpload = answers[key];
-        delete answersPayload.allAnswers[key];
+        delete cleanAnswers[key];
       }
     }
     if (fileToUpload) {
@@ -42,14 +38,13 @@
       answers: {
         sysName: cleanAnswers["sys-name"] || cleanAnswers["sysName"] || "",
         sysEmail: cleanAnswers["sys-email"] || cleanAnswers["sysEmail"] || "",
-        allAnswers: cleanAnswers,
+        ...others,
       },
     };
-
-    console.log(answers);
     formData.append("data", JSON.stringify(dtoStructure));
-    console.log(Array.from(formData.entries()));
     isSubmitting = true;
+    console.log(dtoStructure);
+    console.log("FormData: ", formData);
     try {
       const res = await api.post(`/submission/${data.campaignId}`, formData);
       if (res) isSuccess = true;
@@ -60,9 +55,9 @@
   }
 </script>
 
-<div class="min-h-screen py-10 px-4">
+<div class="min-h-screen">
   <div
-    class="max-w-2xl mx-auto bg-card text-primary text-card-foreground shadow-md rounded-lg overflow-hidden border"
+    class="max-w-2xl mx-auto bg-base-2 text-primary text-card-foreground shadow-md rounded-lg overflow-hidden border border-base-border-1"
   >
     <div class="h-32 bg-indigo-600 flex items-end p-6">
       <h1 class="text-3xl font-bold text-white uppercase tracking-wider">
@@ -123,7 +118,7 @@
             {:else if field.type === "files"}
               <div class="space-y-2">
                 <div
-                  class="relative group border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all
+                  class="relative group border-2 border-gray-300 rounded-xl p-6 transition-all
            hover:border-indigo-500 hover:bg-indigo-50/30
            {fileName ? 'border-indigo-400 bg-indigo-50' : ''}"
                 >
@@ -140,20 +135,11 @@
                     class="flex flex-col items-center justify-center gap-2 text-center"
                   >
                     {#if !fileName}
-                      <div
-                        class="p-3 bg-gray-100 rounded-full group-hover:bg-indigo-100 transition-colors"
-                      >
-                        <FileUp
-                          class="w-6 h-6 text-gray-500 group-hover:text-indigo-600"
-                        />
-                      </div>
                       <div>
                         <p class="text-sm font-semibold text-gray-700">
                           Nhấn để tải lên hoặc kéo thả CV
                         </p>
-                        <p class="text-xs text-gray-500">
-                          Hỗ trợ PDF (Tối đa 5MB)
-                        </p>
+                        <p class="text-xs text-gray-500">Tối đa 5MB</p>
                       </div>
                     {:else}
                       <div
