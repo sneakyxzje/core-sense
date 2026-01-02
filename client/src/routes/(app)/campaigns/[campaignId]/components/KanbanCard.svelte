@@ -16,6 +16,9 @@
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import Button from "@src/lib/components/ui/button/button.svelte";
   import CircleCheck from "@lucide/svelte/icons/circle-check";
+  import Check from "@lucide/svelte/icons/check";
+  import { api } from "@src/lib/utils/api";
+  import { toast } from "svelte-sonner";
 
   let {
     campaign,
@@ -31,6 +34,39 @@
   const openSummary = (s: SubmissionWithStage) => {
     selectedSubmission = s;
     isSummaryOpen = true;
+  };
+
+  let isInterviewOpen = $state(false);
+  const handleInterview = () => {
+    isInterviewOpen = true;
+  };
+  let formData = $state({
+    submissionId: s.id,
+    schedule: "",
+    location: "",
+    notes: "",
+  });
+  let isLoading = $state(false);
+  const executeInterview = async () => {
+    console.log(formData);
+    if (!formData.schedule || !formData.location) {
+      alert("Vui lòng điền đầy đủ thời gian và địa điểm!");
+      return;
+    }
+
+    isLoading = true;
+    try {
+      await api.post("/interviews", {
+        ...formData,
+        schedule: formData.schedule + ":00",
+      });
+      toast.success("Đặt lịch thành công");
+      isInterviewOpen = false;
+    } catch (error) {
+      console.error(error);
+    } finally {
+      isLoading = false;
+    }
   };
 </script>
 
@@ -221,6 +257,7 @@
               <Button
                 variant="secondary"
                 class="justify-start gap-2 h-8 text-xs bg-base-3 hover:bg-base-border-2"
+                onclick={() => handleInterview()}
               >
                 <CalendarDays class="w-3.5 h-3.5" /> Phỏng vấn
               </Button>
@@ -252,6 +289,124 @@
             >
               <X class="w-3.5 h-3.5" /> Đóng lại
             </Button>
+          </div>
+        </div>
+      </div>
+    </Dialog.Content>
+  </Dialog.Root>
+
+  <Dialog.Root bind:open={isInterviewOpen}>
+    <Dialog.Content
+      class="sm:max-w-[800px] bg-base-3 border-base-border-1 p-0 overflow-hidden"
+    >
+      <div class="px-6 py-4 bg-base-2/50 border-b border-base-border-1">
+        <Dialog.Header>
+          <div class="flex items-start gap-3">
+            <div class="text-left">
+              <Dialog.Title class="text-xl font-bold">Phỏng vấn</Dialog.Title>
+              <p class="text-xs text-muted-foreground">
+                Ứng viên: {s.fullName}
+              </p>
+            </div>
+          </div>
+        </Dialog.Header>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-0">
+        <div
+          class="p-6 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar"
+        >
+          <section>
+            <div class="flex items-center gap-3 mb-4">
+              <h3 class="font-bold text-sm uppercase tracking-wider">
+                Chọn thời gian
+              </h3>
+            </div>
+            <div class="ml-7">
+              <input
+                type="datetime-local"
+                bind:value={formData.schedule}
+                class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-1/50 transition-all"
+              />
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-3 mb-4">
+              <h3 class="font-bold text-sm uppercase tracking-wider">
+                Địa điểm / Link họp
+              </h3>
+            </div>
+            <div class="ml-7">
+              <input
+                type="text"
+                placeholder="Google Meet link hoặc địa chỉ phòng họp..."
+                bind:value={formData.location}
+                class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-1/50 transition-all"
+              />
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-3 mb-4">
+              <h3 class="font-bold text-sm uppercase tracking-wider">
+                Ghi chú cho ứng viên
+              </h3>
+            </div>
+            <div class="ml-7">
+              <textarea
+                rows="4"
+                placeholder="Nhắc nhở ứng viên mang theo laptop, chuẩn bị Portfolio..."
+                class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-1/50 transition-all resize-none"
+                bind:value={formData.notes}
+              ></textarea>
+            </div>
+          </section>
+        </div>
+
+        <div class="bg-base-2/30 p-4 border-l border-base-border-1 space-y-6">
+          <div>
+            <h4
+              class="text-[10px] font-bold uppercase text-muted-foreground mb-2"
+            >
+              Đánh giá hiện tại
+            </h4>
+            <div class="space-y-2">
+              <div
+                class="p-2 bg-base-3 border border-base-border-2 rounded text-center"
+              >
+                <span class="block text-[10px] uppercase opacity-50"
+                  >AI Score</span
+                >
+                <span class="text-xl font-black text-positive-1">{s.score}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4
+              class="text-[10px] font-bold uppercase text-muted-foreground mb-2"
+            >
+              Xác nhận
+            </h4>
+            <div class="flex flex-col gap-2">
+              <Button
+                variant="default"
+                class="justify-start gap-2 h-9 text-xs bg-primary-1 hover:bg-primary-1/90 text-white"
+                onclick={() => executeInterview()}
+              >
+                <Check class="w-3.5 h-3.5" /> Lưu lịch hẹn
+              </Button>
+
+              <Button
+                variant="secondary"
+                class="justify-start gap-2 h-9 text-xs bg-base-3 hover:bg-base-border-2"
+                onclick={() => (isInterviewOpen = false)}
+              >
+                <X class="w-3.5 h-3.5" /> Hủy bỏ
+              </Button>
+            </div>
           </div>
         </div>
       </div>
