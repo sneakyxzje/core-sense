@@ -9,6 +9,7 @@ import com.insight_pulse.tech.campaign.domain.FormQuestion;
 public record GeminiRequest(
     List<FormQuestion> formSchema,
     Map<String, Object> answer,
-    String userPrompt
+    String userPrompt,
+    String resume
 ) {
 }
