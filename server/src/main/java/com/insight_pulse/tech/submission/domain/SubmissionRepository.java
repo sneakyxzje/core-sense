@@ -38,7 +38,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
         SELECT * FROM submissions s 
         WHERE s.campaigns_id = :campaignId 
         AND (
-            LOWER(CAST(s.answers AS TEXT)) LIKE LOWER(CONCAT('%', :search, '%')) 
+            LOWER(CAST(s.fullname AS TEXT)) LIKE LOWER(CONCAT('%', :search, '%')) 
         )
         """, 
         countQuery = """
@@ -68,4 +68,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, String> 
             """)
     void updateStarredStatus(String submissionId, boolean status);
 
+    @Query("""
+            SELECT s.cvUrl FROM Submission s WHERE s.id = :submissionId
+            """)
+    String findCVUrlBySubmissionId(String submissionId);
 }
