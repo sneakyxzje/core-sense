@@ -1,10 +1,14 @@
 <script lang="ts">
   import { page } from "$app/state";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-  import { MoonIcon, SunIcon } from "lucide-svelte";
+  import { Bell, MoonIcon, SunIcon } from "lucide-svelte";
   import { toggleMode } from "mode-watcher";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import { ScrollArea } from "$lib/components/ui/scroll-area";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import PanelLeft from "@lucide/svelte/icons/panel-left";
+  import { notificationStore } from "@src/lib/stores/notification.svelte";
+
   function formatLabel(str: string) {
     return str
       .replace(/-/g, " ")
@@ -77,24 +81,82 @@
     </Breadcrumb.Root>
   </div>
   <div>
-    <button
-      onclick={toggleMode}
-      type="button"
-      class="
-    relative inline-flex h-9 w-9 items-center justify-center rounded-md
-    text-foreground transition-colors
-    hover:bg-accent/50
-    focus-visible:outline-none focus-visible:ring-0
-    cursor-pointer
-  "
-    >
-      <SunIcon
-        class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0"
-      />
+    <div class="flex items-center gap-2">
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+          class="relative p-2 hover:bg-accent rounded-full transition-colors"
+        >
+          <Bell class="h-[1.2rem] w-[1.2rem] cursor-pointer" />
 
-      <MoonIcon
-        class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100"
-      />
-    </button>
+          {#if notificationStore.unread > 0}
+            <span
+              class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-negative-1 text-[10px] text-destructive-foreground font-bold border-2 border-border-base-1"
+            >
+              {notificationStore.unread}
+            </span>
+          {/if}
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Content
+          class="w-80 p-0 border-base-border-1 border bg-base-2"
+          align="end"
+        >
+          <div
+            class="px-4 py-2 border-b border-base-border-1 flex justify-between items-center"
+          >
+            <span class="font-bold text-sm">Thông báo</span>
+            <button
+              onclick={() => notificationStore.markAllAsRead()}
+              class="text-[10px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              Đánh dấu đã đọc
+            </button>
+          </div>
+
+          <ScrollArea class="h-[300px]">
+            {#if notificationStore.list.length === 0}
+              <div class="p-4 text-center text-xs text-muted-foreground">
+                Không có thông báo mới
+              </div>
+            {:else}
+              {#each notificationStore.list as noti}
+                <DropdownMenu.Item
+                  class="flex flex-col hover:bg-base-3 items-start gap-1 p-4 cursor-pointer border-b last:border-0 {noti.isRead
+                    ? 'opacity-60'
+                    : 'bg-accent/20'}"
+                  onclick={() =>
+                    noti.link && (window.location.href = noti.link)}
+                >
+                  <div class="font-semibold text-xs">{noti.title}</div>
+                  <div class="text-[11px] text-muted-foreground line-clamp-2">
+                    {noti.message}
+                  </div>
+                  <div class="text-[9px] mt-1 opacity-50">{noti.createdAt}</div>
+                </DropdownMenu.Item>
+              {/each}
+            {/if}
+          </ScrollArea>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+      <button
+        onclick={toggleMode}
+        type="button"
+        class="
+      relative inline-flex h-9 w-9 items-center justify-center rounded-md
+      text-foreground transition-colors
+      hover:bg-accent/50
+      focus-visible:outline-none focus-visible:ring-0
+      cursor-pointer
+    "
+      >
+        <SunIcon
+          class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0"
+        />
+
+        <MoonIcon
+          class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100"
+        />
+      </button>
+    </div>
   </div>
 </div>
