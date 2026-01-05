@@ -37,10 +37,10 @@
     }
   };
 
-  function selectOnFocus(node: HTMLInputElement) {
+  const selectOnFocus = (node: HTMLInputElement) => {
     node.focus();
     node.select();
-  }
+  };
 </script>
 
 <div class="flex items-center justify-between mb-2 px-1 group/header h-8">
