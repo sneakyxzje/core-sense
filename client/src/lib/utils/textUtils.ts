@@ -21,3 +21,7 @@ export const renderHighlightedText = (
   });
   return processedHtml;
 };
+
+export const formatLabel = (str: string) => {
+  return str.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+};
