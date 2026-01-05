@@ -1,4 +1,4 @@
-import type { SubmissionDetail } from "@src/lib/types/campaign.js";
+import type { SubmissionDetail } from "@src/lib/types/submission";
 import { api } from "@src/lib/utils/api.js";
 
 export const load = async ({ params, fetch }) => {
