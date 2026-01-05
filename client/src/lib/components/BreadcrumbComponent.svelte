@@ -1,14 +1,14 @@
 <script lang="ts">
   import { page } from "$app/state";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-  import { Bell, MoonIcon, SunIcon } from "lucide-svelte";
+  import { Bell, CircleAlert, MoonIcon, SunIcon } from "lucide-svelte";
   import { toggleMode } from "mode-watcher";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { ScrollArea } from "$lib/components/ui/scroll-area";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import PanelLeft from "@lucide/svelte/icons/panel-left";
   import { notificationStore } from "@src/lib/stores/notification.svelte";
-
+  import { formatRelativeTime } from "@src/lib/utils/FormatDate";
   function formatLabel(str: string) {
     return str
       .replace(/-/g, " ")
@@ -88,11 +88,11 @@
         >
           <Bell class="h-[1.2rem] w-[1.2rem] cursor-pointer" />
 
-          {#if notificationStore.unread > 0}
+          {#if notificationStore.unreadCount > 0}
             <span
-              class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-negative-1 text-[10px] text-destructive-foreground font-bold border-2 border-border-base-1"
+              class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-negative-1 text-[10px] text-base-1 font-bold border-2 border-base-border-3"
             >
-              {notificationStore.unread}
+              {notificationStore.unreadCount}
             </span>
           {/if}
         </DropdownMenu.Trigger>
@@ -107,7 +107,7 @@
             <span class="font-bold text-sm">Thông báo</span>
             <button
               onclick={() => notificationStore.markAllAsRead()}
-              class="text-[10px] text-muted-foreground hover:text-primary transition-colors"
+              class="text-[10px] text-muted-foreground cursor-pointer hover:underline transition-colors"
             >
               Đánh dấu đã đọc
             </button>
@@ -121,17 +121,26 @@
             {:else}
               {#each notificationStore.list as noti}
                 <DropdownMenu.Item
-                  class="flex flex-col hover:bg-base-3 items-start gap-1 p-4 cursor-pointer border-b last:border-0 {noti.isRead
+                  class="flex flex-col hover:bg-base-3 items-start gap-1 p-4 cursor-pointer border-b border-base-border-1 last:border-0 {noti.isRead
                     ? 'opacity-60'
-                    : 'bg-accent/20'}"
-                  onclick={() =>
-                    noti.link && (window.location.href = noti.link)}
+                    : 'bg-base-3'}"
                 >
-                  <div class="font-semibold text-xs">{noti.title}</div>
+                  <div
+                    class="font-semibold text-xs uppercase text-negative-1 flex items-center gap-2"
+                  >
+                    <div>
+                      <CircleAlert />
+                    </div>
+                    <div>
+                      {noti.title}
+                    </div>
+                  </div>
                   <div class="text-[11px] text-muted-foreground line-clamp-2">
                     {noti.message}
                   </div>
-                  <div class="text-[9px] mt-1 opacity-50">{noti.createdAt}</div>
+                  <div class="text-[9px] mt-1 opacity-50">
+                    {formatRelativeTime(noti.createdAt)}
+                  </div>
                 </DropdownMenu.Item>
               {/each}
             {/if}
