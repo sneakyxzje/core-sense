@@ -1,20 +1,30 @@
 <script lang="ts">
   import Sidebar from "@src/lib/components/Sidebar.svelte";
   import * as Sidebars from "$lib/components/ui/sidebar/index.js";
-  import { createSocketClient } from "@src/lib/services/Socket";
+  import {
+    createSocketClient,
+    subscribeNotifications,
+  } from "@src/lib/services/Socket";
   import { notificationStore } from "@src/lib/stores/notification.svelte";
-  let { children } = $props();
+  let { data, children } = $props();
 
   $effect(() => {
-    const client = createSocketClient(
-      (sub) => console.log("Sub:", sub),
-      (noti) => {
-        notificationStore.add(noti);
-      }
-    );
-
+    const client = createSocketClient();
     client.activate();
-    return () => client.deactivate();
+
+    const unsub = subscribeNotifications((noti) => {
+      notificationStore.add(noti);
+    });
+    return () => {
+      unsub();
+      client.deactivate();
+    };
+  });
+  $effect(() => {
+    const notifications = data.notifications;
+    if (notifications) {
+      notificationStore.init(data.notifications);
+    }
   });
 </script>
 
