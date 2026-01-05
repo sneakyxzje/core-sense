@@ -18,7 +18,7 @@
   import Button from "@src/lib/components/ui/button/button.svelte";
   import { api } from "@src/lib/utils/api";
   import { renderHighlightedText } from "@src/lib/utils/textUtils";
-  import type { AiAssessment } from "@src/lib/types/campaign";
+  import type { AiAssessment } from "@src/lib/types/submission";
 
   let { data }: { data: PageData } = $props();
   let isAnalyzing = $state(false);
