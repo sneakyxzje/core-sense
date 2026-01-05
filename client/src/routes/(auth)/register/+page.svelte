@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/button/button.svelte";
   import {
     Card,
@@ -11,10 +10,7 @@
   } from "$lib/components/ui/card";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
-  import type { RegisterPayload } from "@src/lib/types/auth";
-  import { api } from "@src/lib/utils/api";
   import { RegisterState } from "@src/routes/(auth)/register/page.svelte";
-  import { createMutation } from "@tanstack/svelte-query";
 
   const state = new RegisterState();
 </script>
