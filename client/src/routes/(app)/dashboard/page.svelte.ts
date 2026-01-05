@@ -64,7 +64,7 @@ export class DashboardState {
   }
 
   disconnectSocket() {
-    if (this.unsubscribe) this.unsubscribe;
+    if (this.unsubscribe) this.unsubscribe();
   }
   private onMessageReceived(payload: SubmissionEvent) {
     if (this.stats) {
