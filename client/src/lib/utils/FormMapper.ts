@@ -21,7 +21,7 @@ export const getMappedAnswers = (
   }));
 };
 
-export const getRespondentName = (answerMap: any, schema: any[]) => {
+export const getRespondentName = (answerMap: any, schema?: any[]) => {
   if (!answerMap || !schema || schema.length === 0) return "Ẩn danh";
 
   const firstQuestion = schema[0].id;
