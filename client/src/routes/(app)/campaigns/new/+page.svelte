@@ -8,8 +8,8 @@
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
   import { createCampaign } from "@src/lib/api/campaign";
   import { goto } from "$app/navigation";
-  import type { CreateCampaignRequest } from "@src/lib/types/CreateCampaignRequest";
   import { Textarea } from "@src/lib/components/ui/textarea";
+  import type { CreateCampaignRequest } from "@src/lib/types/campaign";
 
   const queryClient = useQueryClient();
   let formData = $state<CreateCampaignRequest>({
