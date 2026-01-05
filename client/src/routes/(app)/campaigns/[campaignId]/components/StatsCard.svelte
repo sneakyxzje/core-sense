@@ -1,5 +1,10 @@
 <script lang="ts">
-  let { campaign } = $props();
+  import {
+    useCampaignState,
+    type CampaignDetailState,
+  } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
+
+  const state = useCampaignState();
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -11,7 +16,7 @@
         class="text-xs text-muted-foreground font-medium uppercase tracking-wider"
         >Tổng phản hồi</span
       >
-      <div class="text-2xl font-black">{campaign.totalSubmissions}</div>
+      <div class="text-2xl font-black">{state.campaign?.totalSubmissions}</div>
     </div>
   </div>
 </div>
