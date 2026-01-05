@@ -1,4 +1,7 @@
-import { createSocketClient } from "@src/lib/services/Socket";
+import {
+  createSocketClient,
+  subscribeSubmissions,
+} from "@src/lib/services/Socket";
 import type {
   SubmissionChart,
   SubmissionEvent,
@@ -13,7 +16,7 @@ export class DashboardState {
   chart = $state<SubmissionChart[]>([]);
   summary = $state<SubmissionSummary[]>([]);
   stompClient: Client | null = null;
-
+  private unsubscribe: (() => void) | null = null;
   constructor(initialData: {
     stats: TotalSubmissions;
     chart: SubmissionChart[];
@@ -55,12 +58,13 @@ export class DashboardState {
   });
 
   connectSocket() {
-    this.stompClient = createSocketClient(this.onMessageReceived.bind(this));
-    this.stompClient.activate();
+    const client = createSocketClient();
+    if (!client.activate) client.activate();
+    this.unsubscribe = subscribeSubmissions(this.onMessageReceived.bind(this));
   }
 
   disconnectSocket() {
-    if (this.stompClient) this.stompClient.deactivate();
+    if (this.unsubscribe) this.unsubscribe;
   }
   private onMessageReceived(payload: SubmissionEvent) {
     if (this.stats) {
