@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FormQuestion } from "@src/lib/types/FormQuestion.js";
   import { api } from "@src/lib/utils/api.js";
-  import { FileText, FileUp, X } from "lucide-svelte";
+  import { FileText, X } from "lucide-svelte";
   let { data } = $props();
   let answers = $state<Record<string, any>>({});
   let isSubmitting = $state(false);
