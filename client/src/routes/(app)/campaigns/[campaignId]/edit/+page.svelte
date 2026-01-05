@@ -10,7 +10,7 @@
   let campaign = $state(JSON.parse(JSON.stringify(data.campaign)));
   let isSaving = $state(false);
 
-  async function onSave() {
+  const onSave = async () => {
     isSaving = true;
     try {
       const ok = await api.put(`/campaigns/${campaign.id}`, campaign);
@@ -24,7 +24,7 @@
     } finally {
       isSaving = false;
     }
-  }
+  };
 
   $inspect(campaign);
 </script>
@@ -68,7 +68,6 @@
 
   <div class="border p-4 bg-background rounded-lg">
     <h2 class="font-bold mb-4">Câu hỏi khảo sát</h2>
-    <!-- Truyền cái campaign "đệm" vào để sửa -->
     <FormBuilder bind:schema={campaign.formSchema} />
   </div>
 </div>
