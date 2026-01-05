@@ -8,12 +8,8 @@
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import PanelLeft from "@lucide/svelte/icons/panel-left";
   import { notificationStore } from "@src/lib/stores/notification.svelte";
-  import { formatRelativeTime } from "@src/lib/utils/FormatDate";
-  function formatLabel(str: string) {
-    return str
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  }
+  import { formatRelativeTime } from "@src/lib/utils/dateUtils";
+  import { formatLabel } from "@src/lib/utils/textUtils";
   const sidebar = Sidebar.useSidebar();
   function getBreadcrumbLabel(segment: string) {
     const data = page.data;
