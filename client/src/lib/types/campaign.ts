@@ -1,4 +1,5 @@
 import type { FormQuestion } from "@src/lib/types/FormQuestion";
+import type { SubmissionWithStage } from "@src/lib/types/submission";
 
 export interface Campaign {
   id: string;
@@ -16,6 +17,7 @@ export const STATUS_LABELS: Record<CampaignStatus, string> = {
   ACTIVE: "Đang hoạt động",
   INACTIVE: "Đã ngừng",
 };
+
 export const STATUS_COLORS: Record<CampaignStatus, string> = {
   ACTIVE: "bg-green-700 hover:bg-green-600",
   DRAFT: "bg-gray-500 hover:bg-gray-600",
@@ -35,30 +37,9 @@ export interface CampaignDetail {
   totalSubmissions: number;
 }
 
-export interface Submission {
-  userPrompts: string;
-  id: string;
-  fullName: string;
-  aiAssessment: Record<string, any>;
-  answer: Record<string, any>;
-  score: number;
-  submittedAt: string;
-  summary: string;
-}
-
-export interface SubmissionWithStage extends Submission {
-  stageId: string;
-  starred: boolean;
-}
-
 export interface CampaignWithSubmission {
   campaign: CampaignDetail;
   submissions: PageResponse<SubmissionWithStage>;
-}
-
-export interface SubmissionDetail extends Submission {
-  snapshotSchema: FormQuestion[];
-  cvUrl: string;
 }
 
 export interface CampaignPublic {
@@ -66,19 +47,24 @@ export interface CampaignPublic {
   formSchema: FormQuestion[];
 }
 
-export type AiAssessment = {
-  score: number;
-  aiAssesment: string;
-  highlights: {
-    text: string;
-    type: "positive" | "negative" | "neutral";
-    comment: string;
-  }[];
-};
-
-export type CampaignStage = {
+export interface CampaignStage {
   id: string;
   stageName: string;
   campaignId: string;
   position: number;
-};
+}
+
+export interface CreateCampaignRequest {
+  name: string;
+  description: string;
+  aiSystemPrompt: string;
+  formSchema: FormQuestion[];
+}
+
+export interface CreateCampaignResponse {
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
