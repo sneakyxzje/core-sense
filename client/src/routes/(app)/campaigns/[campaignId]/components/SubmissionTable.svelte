@@ -10,23 +10,11 @@
   import Badge from "@src/lib/components/ui/badge/badge.svelte";
   import Button from "@src/lib/components/ui/button/button.svelte";
   import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
-  import type { CampaignDetail, Submission } from "@src/lib/types/campaign";
-  import { getRespondentName } from "@src/lib/utils/formMapper";
   import { getScoreColor } from "@src/lib/utils/styleUtils";
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
   import { ArrowUpDown, Eye } from "lucide-svelte";
-  let {
-    submissions,
-    openDetail = $bindable(),
-    campaign,
-    checkComparison,
-    stateComparison,
-  }: {
-    stateComparison: any[];
-    submissions: Submission[];
-    campaign: CampaignDetail;
-    openDetail: (sub: Submission) => void;
-    checkComparison: (checked: boolean, sub: Submission) => void;
-  } = $props();
+
+  const state = useCampaignState();
 </script>
 
 <div
@@ -57,10 +45,10 @@
         </TableRow>
       </TableHeader>
       <TableBody>
-        {#each submissions as sub}
+        {#each state.submissions as sub}
           <TableRow
             class="hover:bg-base-hover cursor-pointer border-base-border-1 transition-colors group"
-            onclick={() => openDetail(sub)}
+            onclick={() => state.openDetail(sub)}
           >
             <TableCell class="font-medium align-top py-4">
               <div class="flex flex-col gap-1">
@@ -130,15 +118,18 @@
               <div class="flex justify-center items-center h-8">
                 <Checkbox
                   class="border-base-border-2 bg-base-2"
-                  onCheckedChange={(checked) => checkComparison(checked, sub)}
-                  checked={stateComparison.some((item) => item.id === sub.id)}
+                  onCheckedChange={(checked) =>
+                    state.checkComparison(checked, sub)}
+                  checked={state.stateComparison.some(
+                    (item) => item.id === sub.id
+                  )}
                 />
               </div>
             </TableCell>
           </TableRow>
         {/each}
 
-        {#if campaign.totalSubmissions === 0}
+        {#if state.campaign?.totalSubmissions === 0}
           <TableRow>
             <TableCell
               colspan={6}
