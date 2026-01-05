@@ -7,16 +7,17 @@
     getRespondentName,
   } from "@src/lib/utils/formMapper";
   import { getScoreColor } from "@src/lib/utils/styleUtils";
-  import { Calendar, Sparkles, SquarePen } from "lucide-svelte";
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
+  import { Calendar, SquarePen } from "lucide-svelte";
 
-  let { isSheetOpen = $bindable(), selectedSubmission, campaign } = $props();
+  const detailState = useCampaignState();
 </script>
 
-<Sheet.Root bind:open={isSheetOpen}>
+<Sheet.Root bind:open={detailState.isSheetOpen}>
   <Sheet.Content
     class="sm:max-w-xl w-[95vw] p-0 flex flex-col h-full border-l border-base-border-1 bg-base-3 shadow-2xl overflow-hidden sm:duration-500"
   >
-    {#if selectedSubmission}
+    {#if detailState.selectedSubmission}
       <div
         class="relative overflow-hidden border-b border-base-border-1 bg-background px-6 py-8"
       >
@@ -27,8 +28,8 @@
                 class="text-2xl font-extrabold tracking-tight text-primary-900 leading-tight"
               >
                 {getRespondentName(
-                  selectedSubmission.answer,
-                  campaign.formSchema
+                  detailState.selectedSubmission.answer,
+                  detailState.campaign?.formSchema
                 )}
               </Sheet.Title>
               <div class="flex items-center gap-3 text-slate-500">
@@ -36,33 +37,35 @@
                   class="flex items-center gap-1.5 bg-base-2 px-2 py-1 rounded-md border border-base-border-1 shadow-sm text-xs font-medium"
                 >
                   <Calendar class="w-3.5 h-3.5 " />
-                  {new Date(selectedSubmission.submittedAt).toLocaleDateString(
-                    "vi-VN"
-                  )}
+                  {new Date(
+                    detailState.selectedSubmission.submittedAt
+                  ).toLocaleDateString("vi-VN")}
                 </div>
                 <span
                   class="text-[10px] uppercase tracking-wider font-bold opacity-40"
                   >•</span
                 >
                 <span class="text-xs font-medium italic">
-                  {new Date(selectedSubmission.submittedAt).toLocaleTimeString(
-                    "vi-VN",
-                    { hour: "2-digit", minute: "2-digit" }
-                  )}
+                  {new Date(
+                    detailState.selectedSubmission.submittedAt
+                  ).toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
             </div>
 
             <div
-              class={`flex flex-col items-center justify-center min-w-[70px] p-2  border-2 shadow-sm ${getScoreColor(selectedSubmission.score)} rounded-md `}
+              class={`flex flex-col items-center justify-center min-w-[70px] p-2  border-2 shadow-sm ${getScoreColor(detailState.selectedSubmission.score)} rounded-md `}
             >
               <span
                 class="text-[10px] uppercase font-bold opacity-70 leading-none mb-1"
                 >Điểm số</span
               >
               <span class="text-xl font-black leading-none"
-                >{selectedSubmission.score}<span class="text-xs opacity-60"
-                  >/10</span
+                >{detailState.selectedSubmission.score}<span
+                  class="text-xs opacity-60">/10</span
                 ></span
               >
             </div>
@@ -88,9 +91,9 @@
               </div>
 
               <div class="text-sm leading-7 text-base-fg-2">
-                {#if selectedSubmission.aiAssessment}
+                {#if detailState.selectedSubmission.aiAssessment}
                   <p>
-                    {selectedSubmission.aiAssessment?.summary}
+                    {detailState.selectedSubmission.aiAssessment?.summary}
                   </p>
                 {:else}
                   <div
@@ -116,7 +119,7 @@
             </div>
 
             <div class="space-y-6">
-              {#each getMappedAnswers(selectedSubmission.answer, campaign.formSchema) as item, i}
+              {#each getMappedAnswers(detailState.selectedSubmission.answer, detailState.campaign?.formSchema) as item, i}
                 <div
                   class="relative pl-6 border-l-2 border-base-border-2 hover:border-base-border-hover transition-colors"
                 >
@@ -151,14 +154,16 @@
         <Button
           variant="ghost"
           class="font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-          onclick={() => (isSheetOpen = false)}
+          onclick={() => (detailState.isSheetOpen = false)}
         >
           Đóng
         </Button>
         <Button
           class="bg-primary-1  hover:bg-primary-hover text-primary-fg-1 px-6 rounded-xl transition-all active:scale-95"
           onclick={() =>
-            goto(`${campaign.id}/submissions/${selectedSubmission.id}`)}
+            goto(
+              `${detailState.campaign?.id}/submissions/${detailState.selectedSubmission?.id}`
+            )}
         >
           <SquarePen class="w-4 h-4 mr-2" />
           Chi tiết
