@@ -8,7 +8,7 @@ import type {
   SubmissionSummary,
   TotalSubmissions,
 } from "@src/lib/types/submission";
-import { parseDate } from "@src/lib/utils/FormatDate";
+import { parseDate } from "@src/lib/utils/dateUtils";
 import type { Client } from "@stomp/stompjs";
 
 export class DashboardState {

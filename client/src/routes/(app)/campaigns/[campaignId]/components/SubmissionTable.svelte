@@ -11,8 +11,8 @@
   import Button from "@src/lib/components/ui/button/button.svelte";
   import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
   import type { CampaignDetail, Submission } from "@src/lib/types/campaign";
-  import { getRespondentName } from "@src/lib/utils/FormMapper";
-  import { getScoreColor } from "@src/lib/utils/GetScoreColor";
+  import { getRespondentName } from "@src/lib/utils/formMapper";
+  import { getScoreColor } from "@src/lib/utils/styleUtils";
   import { ArrowUpDown, Eye } from "lucide-svelte";
   let {
     submissions,

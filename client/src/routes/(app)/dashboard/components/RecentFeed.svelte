@@ -1,9 +1,8 @@
 <script lang="ts">
   import { ArrowUpRight, Clock, Activity, FileText } from "lucide-svelte";
   import * as Card from "$lib/components/ui/card";
-  import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
-  import { formatRelativeTime } from "@src/lib/utils/FormatDate";
+  import { formatRelativeTime } from "@src/lib/utils/dateUtils";
   import { goto } from "$app/navigation";
 
   let { items } = $props<{ items: any[] }>();

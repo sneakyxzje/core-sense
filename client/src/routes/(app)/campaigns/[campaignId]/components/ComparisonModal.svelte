@@ -4,7 +4,7 @@
   import {
     getMappedAnswers,
     getRespondentName,
-  } from "@src/lib/utils/FormMapper";
+  } from "@src/lib/utils/formMapper";
   import Badge from "@src/lib/components/ui/badge/badge.svelte";
   import type { GeminiComparisonResponse } from "@src/lib/types/Gemini";
   import { api } from "@src/lib/utils/api";
@@ -16,8 +16,6 @@
     stateComparison: any
   ): Promise<GeminiComparisonResponse | undefined> => {
     isProcessing = true;
-    console.log("asdasd", stateComparison);
-
     try {
       const res = await api.post<GeminiComparisonResponse, null>(
         `/gemini/compare`,

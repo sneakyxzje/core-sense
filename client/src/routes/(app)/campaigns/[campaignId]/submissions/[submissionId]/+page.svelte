@@ -13,11 +13,11 @@
     Loader,
     CircleCheck,
   } from "lucide-svelte";
-  import { formatDateTime } from "$lib/utils/FormatDate";
-  import { getMappedAnswers } from "$lib/utils/FormMapper";
+  import { formatDateTime } from "@src/lib/utils/dateUtils";
+  import { getMappedAnswers } from "@src/lib/utils/formMapper";
   import Button from "@src/lib/components/ui/button/button.svelte";
   import { api } from "@src/lib/utils/api";
-  import { renderHighlightedText } from "@src/lib/utils/HiglightText";
+  import { renderHighlightedText } from "@src/lib/utils/textUtils";
   import type { AiAssessment } from "@src/lib/types/campaign";
 
   let { data }: { data: PageData } = $props();

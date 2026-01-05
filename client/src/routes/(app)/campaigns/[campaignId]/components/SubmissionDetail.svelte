@@ -5,8 +5,8 @@
   import {
     getMappedAnswers,
     getRespondentName,
-  } from "@src/lib/utils/FormMapper";
-  import { getScoreColor } from "@src/lib/utils/GetScoreColor";
+  } from "@src/lib/utils/formMapper";
+  import { getScoreColor } from "@src/lib/utils/styleUtils";
   import { Calendar, Sparkles, SquarePen } from "lucide-svelte";
 
   let { isSheetOpen = $bindable(), selectedSubmission, campaign } = $props();

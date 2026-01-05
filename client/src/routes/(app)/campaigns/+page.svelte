@@ -10,7 +10,7 @@
   import { navigating } from "$app/state";
   import Skeleton from "@src/lib/components/ui/skeleton/skeleton.svelte";
   import * as Pagination from "$lib/components/ui/pagination/index.js";
-  import { formatDate } from "@src/lib/utils/FormatDate.js";
+  import { formatDate } from "@src/lib/utils/dateUtils.js";
   let { data } = $props();
 
   let campaigns = $state(data.campaigns);

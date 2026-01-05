@@ -3,7 +3,7 @@
     CampaignDetail,
     SubmissionWithStage,
   } from "@src/lib/types/campaign";
-  import { formatRelativeTime } from "@src/lib/utils/FormatDate";
+  import { formatRelativeTime } from "@src/lib/utils/dateUtils";
   import {
     CalendarDays,
     Download,
