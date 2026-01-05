@@ -13,15 +13,8 @@
     Plus,
   } from "lucide-svelte";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import { useDebounce } from "@src/lib/hooks/useDebounce.svelte.js";
-  import { api } from "@src/lib/utils/api.js";
-  import {
-    type CampaignStage,
-    type CampaignWithSubmission,
-    type Submission,
-  } from "@src/lib/types/campaign.js";
+
   import Label from "@src/lib/components/ui/label/label.svelte";
-  import { toast } from "svelte-sonner";
   import ComparisonModal from "@src/routes/(app)/campaigns/[campaignId]/components/ComparisonModal.svelte";
   import SubmissionDetail from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionDetail.svelte";
   import StatsCard from "@src/routes/(app)/campaigns/[campaignId]/components/StatsCard.svelte";
@@ -31,106 +24,18 @@
   import X from "@lucide/svelte/icons/x";
   import Check from "@lucide/svelte/icons/check";
   import SubmissionKanban from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionKanban.svelte";
+  import {
+    CampaignDetailState,
+    setCampaignState,
+  } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte.js";
 
   let { data } = $props();
-
-  let submissions = $state(data.submissions.content || []);
-  let campaign = $state(data.campaign);
-  let campaignStages = $state(data.stages);
-  let currentPage = $state(data.submissions.number || 0);
-  let totalPages = $state(data.submissions.totalPages || 0);
-  let totalElements = $state(data.submissions.totalElements || 0);
-  let pageSize = 10;
-
-  let isSheetOpen = $state(false);
-  const formUrl = `http://localhost:5173/p`;
-  const sharedLink = `${formUrl}/${campaign.id}`;
-  let copied = $state(false);
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(sharedLink);
-    toast.success("Đã copy link thành công!");
-    copied = true;
-    setTimeout(() => (copied = false), 2000);
-  };
-
-  let search = $state("");
-  const debouncedSearch = useDebounce(() => search, 500);
-
-  const fetchSubmissions = async (page: number, query: string) => {
-    try {
-      const res = await api.get<CampaignWithSubmission>(
-        `/campaigns/${campaign.id}/submissions?page=${page}&size=${pageSize}&search=${query}&sort=submittedAt,desc`
-      );
-
-      submissions = res.submissions.content;
-      totalPages = res.submissions.totalPages;
-      totalElements = res.submissions.totalElements;
-      currentPage = res.submissions.number;
-    } catch (err) {
-      console.error("Lỗi tải dữ liệu:", err);
-      toast.error("Không thể tải danh sách ứng viên");
-    }
-  };
-  let isFirstRender = true;
-  $effect(() => {
-    const query = debouncedSearch.current;
-    if (isFirstRender) {
-      isFirstRender = false;
-      return;
-    }
-    fetchSubmissions(0, query);
+  const state = new CampaignDetailState({
+    campaign: data.campaign,
+    submissions: data.submissions,
+    columns: data.stages,
   });
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 0 && newPage < totalPages) {
-      fetchSubmissions(newPage, debouncedSearch.current);
-    }
-  };
-
-  let selectedSubmission = $state<any>(null);
-  function openDetail(sub: any) {
-    selectedSubmission = sub;
-    isSheetOpen = true;
-  }
-
-  let stateComparison = $state<Submission[]>([]);
-  let isComparisonOpen = $state(false);
-  const checkComparison = (checked: boolean, sub: Submission) => {
-    if (checked) {
-      if (stateComparison.length < 2) {
-        stateComparison.push(sub);
-      } else {
-        toast.warning("Chỉ được chọn tối đa 2 ứng viên để so sánh");
-      }
-    } else {
-      stateComparison = stateComparison.filter((item) => item.id !== sub.id);
-    }
-  };
-  const handleComparison = () => {
-    isComparisonOpen = true;
-  };
-
-  let viewMode = $state("kanban");
-
-  let columns = $state(campaignStages || []);
-  const addColumn = async () => {
-    try {
-      const response = await api.post<CampaignStage, {}>(
-        `/campaigns/${campaign.id}/stages`,
-        {
-          stageName: "Cột mới",
-          position: columns.length,
-        },
-        fetch
-      );
-      const newStage = response;
-      columns = [...columns, newStage];
-      toast.success("Đã tạo cột mới thành công");
-    } catch (error) {
-      toast.error("Không thể tạo cột, vui lòng thử lại");
-    }
-  };
+  setCampaignState(state);
 </script>
 
 <div class="h-[calc(100vh-110px)] flex flex-col space-y-6">
@@ -139,13 +44,13 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Phân tích phản hồi</h1>
         <div class="flex items-center gap-2 text-muted-foreground mt-1 text-sm">
-          <span class="text-base-fg-4">Chiến dịch: {campaign.name}</span>
+          <span class="text-base-fg-4">Chiến dịch: {state.campaign?.name}</span>
           <span class="text-base-fg-4">•</span>
-          <span class="text-base-fg-4">{totalElements} bài nộp</span>
+          <span class="text-base-fg-4">{state.totalElements} bài nộp</span>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        {#if viewMode === "table"}
+        {#if state.viewMode === "table"}
           <Dialog.Root>
             <Dialog.Trigger>
               <Button
@@ -169,7 +74,7 @@
                   <Input
                     id="link"
                     readonly
-                    value={sharedLink}
+                    value={state.sharedLink}
                     class="flex-1 bg-base-2 border-base-border-1 text-base-fg-1 focus-visible:ring-primary-1"
                   />
                   <Button
@@ -177,9 +82,9 @@
                     size="icon"
                     variant="secondary"
                     class="shrink-0 border border-base-border-1 bg-base-2 hover:bg-base-3 text-base-fg-1"
-                    onclick={copyLink}
+                    onclick={state.copyLink}
                   >
-                    {#if copied}
+                    {#if state.copied}
                       <Check class="h-4 w-4 text-green-500" />
                     {:else}
                       <Copy class="h-4 w-4" />
@@ -198,7 +103,10 @@
             </Dialog.Content>
           </Dialog.Root>
         {:else}
-          <Button onclick={addColumn} class="h-9  bg-primary-1 text-base-1">
+          <Button
+            onclick={state.addColumn}
+            class="h-9  bg-primary-1 text-base-1"
+          >
             <Plus class="mr-2 h-4 w-4" /> Tạo cột
           </Button>
         {/if}
@@ -207,16 +115,16 @@
           class="flex items-center gap-2 bg-base-2 p-1 rounded-lg border border-base-border-2 shadow-sm"
         >
           <Button
-            onclick={() => (viewMode = "table")}
-            class="h-9   hover:bg-primary-hover {viewMode === 'table'
+            onclick={() => (state.viewMode = "table")}
+            class="h-9   hover:bg-primary-hover {state.viewMode === 'table'
               ? 'bg-background text-base-1 shadow-sm bg-primary-3'
               : 'text-muted-foreground hover:text-base-1'}"
           >
             <Table class="mr-2 h-4 w-4" /> Table
           </Button>
           <Button
-            onclick={() => (viewMode = "kanban")}
-            class="h-9   hover:bg-primary-hover {viewMode === 'kanban'
+            onclick={() => (state.viewMode = "kanban")}
+            class="h-9   hover:bg-primary-hover {state.viewMode === 'kanban'
               ? 'bg-background text-base-1 shadow-sm bg-primary-3'
               : 'text-muted-foreground hover:text-base-1'}"
           >
@@ -225,8 +133,8 @@
         </div>
       </div>
     </div>
-    {#if viewMode === "table"}
-      <StatsCard {campaign} />
+    {#if state.viewMode === "table"}
+      <StatsCard />
     {/if}
   </div>
 
@@ -234,7 +142,7 @@
     <div class="relative w-72">
       <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        bind:value={search}
+        bind:value={state.search}
         type="search"
         placeholder="Tìm kiếm ứng viên..."
         class="pl-9 h-9 border border-base-border-1 bg-base-3 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -245,7 +153,7 @@
         variant="ghost"
         size="icon"
         class="h-9 w-9"
-        onclick={() => fetchSubmissions(currentPage, search)}
+        onclick={() => state.fetchSubmissions(state.currentPage, state.search)}
       >
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
@@ -253,7 +161,8 @@
           </DropdownMenu.Trigger>
           <DropdownMenu.Content align="end">
             <DropdownMenu.Item
-              onclick={() => fetchSubmissions(currentPage, search)}
+              onclick={() =>
+                state.fetchSubmissions(state.currentPage, state.search)}
               >Làm mới dữ liệu</DropdownMenu.Item
             >
           </DropdownMenu.Content>
@@ -262,24 +171,24 @@
     </div>
   </div>
 
-  {#if stateComparison.length >= 2}
+  {#if state.stateComparison.length >= 2}
     <div
       transition:fly={{ y: 20, duration: 300 }}
       class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-info-1 px-6 py-3"
     >
       <div class="flex items-center gap-2 border-r border-base-border-1 pr-4">
         <span class="text-sm text-primary-fg-1 font-medium"
-          >{stateComparison.length} ứng viên được chọn</span
+          >{state.stateComparison.length} ứng viên được chọn</span
         >
       </div>
       <button
-        onclick={handleComparison}
+        onclick={state.showComparison}
         class="flex items-center gap-2 text-sm text-primary-fg-1 cursor-pointer bg-info-1 font-bold transition-colors"
       >
         So sánh ngay
       </button>
       <button
-        onclick={() => (stateComparison = [])}
+        onclick={() => (state.stateComparison = [])}
         class="p-1 hover:bg-white/10 rounded-full transition-colors"
       >
         <X class="w-4 h-4" />
@@ -288,44 +197,38 @@
   {/if}
 
   <div class="flex-1 min-h-0 min-w-0 w-full relative border-base-border-1">
-    {#if viewMode === "table"}
+    {#if state.viewMode === "table"}
       <div class="absolute inset-0 h-full overflow-auto">
-        <SubmissionTable
-          {submissions}
-          {campaign}
-          {stateComparison}
-          {checkComparison}
-          {openDetail}
-        />
+        <SubmissionTable />
       </div>
     {:else}
       <div class="absolute inset-0 overflow-auto">
-        <SubmissionKanban {submissions} {campaign} bind:columns />
+        <SubmissionKanban />
       </div>
     {/if}
   </div>
 
-  {#if viewMode === "table"}
+  {#if state.viewMode === "table"}
     <div
       class="flex items-center justify-end space-x-2 py-4 border-t border-base-border-1"
     >
       <div class="flex-1 text-sm text-muted-foreground">
-        Trang {currentPage + 1} / {totalPages || 1}
+        Trang {state.currentPage + 1} / {state.totalPages || 1}
       </div>
       <div class="space-x-2 flex items-center">
         <Button
           variant="outline"
           size="sm"
-          onclick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 0}
+          onclick={() => state.handlePageChange(state.currentPage - 1)}
+          disabled={state.currentPage === 0}
         >
           <ChevronLeft class="h-4 w-4 mr-1" /> Trước
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onclick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages - 1}
+          onclick={() => state.handlePageChange(state.currentPage + 1)}
+          disabled={state.currentPage >= state.totalPages - 1}
         >
           Sau <ChevronRight class="h-4 w-4 ml-1" />
         </Button>
@@ -334,5 +237,5 @@
   {/if}
 </div>
 
-<SubmissionDetail bind:isSheetOpen {selectedSubmission} {campaign} />
-<ComparisonModal bind:isComparisonOpen {stateComparison} {campaign} />
+<SubmissionDetail />
+<ComparisonModal />
