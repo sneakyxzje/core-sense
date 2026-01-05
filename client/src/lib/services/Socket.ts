@@ -1,39 +1,37 @@
 import { Client } from "@stomp/stompjs";
 
-export const createSocketClient = (
-  onMessageReceived: (payload: any) => void,
-  onNotificationReceived?: (payload: any) => void
-) => {
+const submissionListeners = new Set<(data: any) => void>();
+const notificationListeners = new Set<(data: any) => void>();
+
+export const createSocketClient = () => {
   const client = new Client({
     brokerURL: "ws://localhost:8080/ws",
-    debug: (str) => console.log("STOMP: " + str),
-
+    debug: (str) => console.log("STOMP DEBUG: ", str),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
   });
 
   client.onConnect = () => {
-    console.log("Connected to WebSocket server");
-
-    client.subscribe("/topic/submissions", (message) => {
-      if (message.body) {
-        const data = JSON.parse(message.body);
-        onMessageReceived(data);
-      }
+    console.log("Socket connected!");
+    client?.subscribe("/topic/submissions", (message) => {
+      const data = JSON.parse(message.body);
+      submissionListeners.forEach((fn) => fn(data));
     });
-    client.subscribe("/user/queue/notifications", (message) => {
-      if (message.body) {
-        const data = JSON.parse(message.body);
-        onNotificationReceived?.(data);
-      }
+    client?.subscribe("/user/queue/notifications", (message) => {
+      const data = JSON.parse(message.body);
+      notificationListeners.forEach((fn) => fn(data));
     });
   };
-
-  client.onStompError = (frame) => {
-    console.error("Broker reported error: " + frame.headers["message"]);
-    console.error("Additional details: " + frame.body);
-  };
-
   return client;
+};
+
+export const subscribeSubmissions = (fn: (data: any) => void) => {
+  submissionListeners.add(fn);
+  return () => submissionListeners.delete(fn);
+};
+
+export const subscribeNotifications = (fn: (data: any) => void) => {
+  notificationListeners.add(fn);
+  return () => notificationListeners.delete(fn);
 };
