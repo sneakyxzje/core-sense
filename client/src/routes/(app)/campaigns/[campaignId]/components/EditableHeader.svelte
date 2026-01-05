@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CampaignDetail, CampaignStage } from "@src/lib/types/campaign";
+  import type { CampaignStage } from "@src/lib/types/campaign";
   import { api } from "@src/lib/utils/api";
   import { toast } from "svelte-sonner";
 
@@ -8,7 +8,6 @@
     onSave,
   }: {
     column: CampaignStage;
-    campaign: CampaignDetail;
     onSave: (newName: string) => void;
   } = $props();
 
