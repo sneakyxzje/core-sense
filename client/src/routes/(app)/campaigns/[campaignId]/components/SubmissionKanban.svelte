@@ -1,9 +1,5 @@
 <script lang="ts">
-  import type {
-    CampaignDetail,
-    CampaignStage,
-    SubmissionWithStage,
-  } from "@src/lib/types/campaign";
+  import type { CampaignDetail, CampaignStage } from "@src/lib/types/campaign";
   import EditableHeader from "@src/routes/(app)/campaigns/[campaignId]/components/EditableHeader.svelte";
   import {
     ArrowRightLeft,
@@ -12,7 +8,6 @@
     Ellipsis,
     Eye,
     Mail,
-    Pencil,
     Star,
     Trash2,
     Zap,
@@ -27,18 +22,12 @@
   import Button from "@src/lib/components/ui/button/button.svelte";
   import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
   import { goto } from "$app/navigation";
+  import type { SubmissionWithStage } from "@src/lib/types/submission";
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
 
-  let {
-    submissions = $bindable(),
-    campaign,
-    columns = $bindable(),
-  }: {
-    submissions: SubmissionWithStage[];
-    campaign: CampaignDetail;
-    columns: CampaignStage[];
-  } = $props();
   let dragSourceColumnId = $state<string | null>(null);
   const flipDurationMs = 200;
+  const kanbanState = useCampaignState();
 
   const handleDndConsider = (
     columnId: string,
@@ -46,7 +35,7 @@
   ) => {
     const { items, info } = e.detail;
     if (!dragSourceColumnId) {
-      const movedItem = submissions.find((s) => s.id === info.id);
+      const movedItem = kanbanState.submissions.find((s) => s.id === info.id);
       dragSourceColumnId = movedItem?.stageId || null;
     }
     items.forEach((item) => {
@@ -88,19 +77,21 @@
     newColumnItems: SubmissionWithStage[],
     columnId: string
   ) => {
-    const otherSubmissions = submissions.filter((s) => s.stageId !== columnId);
-    submissions = [...otherSubmissions, ...newColumnItems];
+    const otherSubmissions = kanbanState.submissions.filter(
+      (s) => s.stageId !== columnId
+    );
+    kanbanState.submissions = [...otherSubmissions, ...newColumnItems];
   };
 
   let open = $state(false);
   let stageToDelete = $state<string | null>(null);
   let targetStageId = $state<string | null>(null);
   const availableStages = $derived(
-    columns.filter((s) => s.id !== stageToDelete)
+    kanbanState.columns.filter((s) => s.id !== stageToDelete)
   );
   const handleDelete = (columnId: string) => {
     stageToDelete = columnId;
-    if (submissions.some((s) => s.stageId === columnId)) {
+    if (kanbanState.submissions.some((s) => s.stageId === columnId)) {
       open = true;
     } else {
       executeDelete(columnId, null);
@@ -121,9 +112,11 @@
       );
 
       open = false;
-      columns = columns.filter((c) => c.id !== stageToDelete);
+      kanbanState.columns = kanbanState.columns.filter(
+        (c) => c.id !== stageToDelete
+      );
       if (targetStage) {
-        submissions = submissions.map((s) =>
+        kanbanState.submissions = kanbanState.submissions.map((s) =>
           s.stageId === stageToDelete ? { ...s, stageId: targetStage } : s
         );
       }
@@ -133,11 +126,13 @@
   };
 
   const handleStarred = async (submissionId: string) => {
-    const index = submissions.findIndex((s) => s.id === submissionId);
+    const index = kanbanState.submissions.findIndex(
+      (s) => s.id === submissionId
+    );
     if (index === -1) return;
 
-    const oldStatus = submissions[index].starred;
-    submissions[index].starred = !oldStatus;
+    const oldStatus = kanbanState.submissions[index].starred;
+    kanbanState.submissions[index].starred = !oldStatus;
 
     try {
       await api.patch(
@@ -146,7 +141,7 @@
         fetch
       );
     } catch (error) {
-      submissions[index].starred = oldStatus;
+      kanbanState.submissions[index].starred = oldStatus;
       toast.error("Lỗi cập nhật, vui lòng thử lại");
     }
   };
@@ -155,7 +150,7 @@
 <div
   class="custom-scrollbar flex h-full w-full gap-4 overflow-x-auto px-2 pb-2 items-start"
 >
-  {#each columns as column, i (column.id)}
+  {#each kanbanState.columns as column, i (column.id)}
     <div class="flex h-full w-[320px] min-w-[320px] flex-col flex-shrink-0">
       <div class="mb-2 px-1 flex items-center justify-between flex-none">
         <div class="flex items-center gap-2">
@@ -164,7 +159,6 @@
               column.stageName = newName;
             }}
             {column}
-            {campaign}
           />
         </div>
         <DropdownMenu.Root>
@@ -210,7 +204,7 @@
       <div
         class="custom-scrollbar flex-1 flex flex-col gap-3 p-3 border border-base-border-2 bg-base-2 rounded-xl overflow-y-auto shadow-sm min-h-[150px]"
         use:dndzone={{
-          items: submissions.filter((s) => s.stageId === column.id),
+          items: kanbanState.submissions.filter((s) => s.stageId === column.id),
           flipDurationMs,
           type: "submission",
           dropTargetStyle: {
@@ -221,11 +215,11 @@
         onconsider={(e) => handleDndConsider(column.id, e)}
         onfinalize={(e) => handleDndFinalize(column.id, e)}
       >
-        {#each submissions.filter((s) => s.stageId === column.id) as s (s.id)}
+        {#each kanbanState.submissions.filter((s) => s.stageId === column.id) as s (s.id)}
           <div animate:flip={{ duration: flipDurationMs }}>
             <ContextMenu.Root>
               <ContextMenu.Trigger>
-                <KanbanCard {s} {campaign} />
+                <KanbanCard {s} />
               </ContextMenu.Trigger>
 
               <ContextMenu.Content class="w-64 bg-base-2 border-base-border-1">
@@ -270,7 +264,9 @@
                   <ContextMenu.Item
                     class="gap-2 cursor-pointer hover:bg-base-border-hover"
                     onclick={() =>
-                      goto(`/campaigns/${campaign.id}/submissions/${s.id}`)}
+                      goto(
+                        `/campaigns/${kanbanState.campaign?.id}/submissions/${s.id}`
+                      )}
                   >
                     <Eye />
                     <span>Xem chi tiết hồ sơ</span>
