@@ -2,9 +2,9 @@ import { browser } from "$app/environment";
 
 const BASE_URL = "http://localhost:8080/api";
 export type Fetch = typeof fetch;
-async function handleResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
 
+const handleResponse = async <T>(response: Response): Promise<T> => {
+  const text = await response.text();
   let data;
   try {
     data = text ? JSON.parse(text) : {};
@@ -24,9 +24,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 
   return data as T;
-}
+};
 
-async function refreshAccessToken(customFetch: Fetch): Promise<boolean> {
+const refreshAccessToken = async (customFetch: Fetch): Promise<boolean> => {
   try {
     const res = await customFetch("http://localhost:8080/api/auth/refresh", {
       method: "POST",
@@ -36,23 +36,26 @@ async function refreshAccessToken(customFetch: Fetch): Promise<boolean> {
   } catch (error) {
     return false;
   }
-}
+};
 
-async function request<T>(
-  endpoint: String,
+const request = async <T>(
+  endpoint: string,
   options: RequestInit,
   customFetch: Fetch = fetch,
   isRetry = false
-): Promise<T> {
+): Promise<T> => {
   const url = `${BASE_URL}${endpoint}`;
   const headers = { ...options.headers } as Record<string, string>;
-  if (!(options.body instanceof FormData)) {
+  let finalBody = options.body;
+  if (options.body && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
+    finalBody = JSON.stringify(options.body);
   }
   const finalOptions = {
     ...options,
     credentials: "include" as RequestCredentials,
     headers: headers,
+    body: finalBody,
   };
 
   const response = await customFetch(url, finalOptions);
@@ -68,11 +71,10 @@ async function request<T>(
     }
   }
   return handleResponse<T>(response);
-}
+};
 
 export const api = {
   get: async <T>(endpoint: string, customFetch: Fetch = fetch): Promise<T> => {
-    const url = `${BASE_URL}${endpoint}`;
     return request<T>(endpoint, { method: "GET" }, customFetch);
   },
 
@@ -86,7 +88,7 @@ export const api = {
       endpoint,
       {
         method: "POST",
-        body: isFormData ? (data as any) : JSON.stringify(data),
+        body: isFormData ? (data as any) : (data as any),
       },
       customFetch
     );
@@ -99,7 +101,7 @@ export const api = {
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "PUT", body: JSON.stringify(data) },
+      { method: "PUT", body: data as any },
       customFetch
     );
   },
@@ -111,7 +113,7 @@ export const api = {
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "PATCH", body: JSON.stringify(data) },
+      { method: "PATCH", body: data as any },
       customFetch
     );
   },
@@ -123,7 +125,7 @@ export const api = {
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "DELETE", body: JSON.stringify(data) },
+      { method: "DELETE", body: data as any },
       customFetch
     );
   },
