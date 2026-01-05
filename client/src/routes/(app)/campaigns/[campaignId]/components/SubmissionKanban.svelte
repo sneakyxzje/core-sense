@@ -15,6 +15,7 @@
     Pencil,
     Star,
     Trash2,
+    Zap,
   } from "lucide-svelte";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
@@ -39,10 +40,10 @@
   let dragSourceColumnId = $state<string | null>(null);
   const flipDurationMs = 200;
 
-  function handleDndConsider(
+  const handleDndConsider = (
     columnId: string,
     e: CustomEvent<DndEvent<SubmissionWithStage>>
-  ) {
+  ) => {
     const { items, info } = e.detail;
     if (!dragSourceColumnId) {
       const movedItem = submissions.find((s) => s.id === info.id);
@@ -53,12 +54,12 @@
     });
 
     updateSubmissionsLocal(items, columnId);
-  }
+  };
 
-  async function handleDndFinalize(
+  const handleDndFinalize = async (
     columnId: string,
     e: CustomEvent<DndEvent<SubmissionWithStage>>
-  ) {
+  ) => {
     const { items, info } = e.detail;
 
     items.forEach((item) => {
@@ -81,15 +82,15 @@
       }
     }
     dragSourceColumnId = null;
-  }
+  };
 
-  function updateSubmissionsLocal(
+  const updateSubmissionsLocal = (
     newColumnItems: SubmissionWithStage[],
     columnId: string
-  ) {
+  ) => {
     const otherSubmissions = submissions.filter((s) => s.stageId !== columnId);
     submissions = [...otherSubmissions, ...newColumnItems];
-  }
+  };
 
   let open = $state(false);
   let stageToDelete = $state<string | null>(null);
@@ -179,14 +180,14 @@
           >
             <DropdownMenu.Group>
               <DropdownMenu.Item
-                class="flex items-center gap-2 cursor-pointer py-2 px-3 text-sm"
+                class="flex items-center gap-2 hover:bg-base-3 cursor-pointer py-2 px-3 text-sm"
               >
-                <Pencil class="w-3.5 h-3.5" />
-                <span>Đổi tên cột</span>
+                <Zap class="w-3.5 h-3.5" />
+                <span>Thao tác</span>
               </DropdownMenu.Item>
 
               <DropdownMenu.Item
-                class="flex items-center gap-2 cursor-pointer py-2 px-3 text-sm"
+                class="flex items-center gap-2  hover:bg-base-3 cursor-pointer py-2 px-3 text-sm"
               >
                 <ArrowRightLeft class="w-3.5 h-3.5" />
                 <span>Di chuyển cột</span>
