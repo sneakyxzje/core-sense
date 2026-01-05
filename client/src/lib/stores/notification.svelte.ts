@@ -1,22 +1,25 @@
+import type {
+  Notifications,
+  NotificationSummary,
+} from "@src/lib/types/notifications";
 import { toast } from "svelte-sonner";
 
-export interface Notification {
-  title: string;
-  message: string;
-  link?: string;
-  isRead: boolean;
-  createdAt: string;
-}
-
-let list = $state<Notification[]>([]);
-let unreadCount = $derived(list.filter((n) => !n.isRead).length);
-
+let list = $state<Notifications[]>([]);
+let unreadCount = $state(0);
 export const notificationStore = {
   get list() {
     return list;
   },
-  get unread() {
+  get unreadCount() {
     return unreadCount;
+  },
+  set unreadCount(v) {
+    unreadCount = v;
+  },
+
+  init(data: NotificationSummary) {
+    list = data.notifications.content;
+    unreadCount = data.unreadCount;
   },
 
   add(noti: any) {
@@ -28,6 +31,7 @@ export const notificationStore = {
         onClick: () => (window.location.href = noti.link),
       },
     });
+    unreadCount += 1;
   },
 
   markAllAsRead() {
