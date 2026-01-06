@@ -2,6 +2,7 @@ import type {
   Notifications,
   NotificationSummary,
 } from "@src/lib/types/notifications";
+import { api } from "@src/lib/utils/api";
 import { toast } from "svelte-sonner";
 
 let list = $state<Notifications[]>([]);
@@ -11,7 +12,7 @@ export const notificationStore = {
     return list;
   },
   get unreadCount() {
-    return unreadCount;
+    return list.filter((n) => !n.isRead).length;
   },
   set unreadCount(v) {
     unreadCount = v;
@@ -36,5 +37,19 @@ export const notificationStore = {
 
   markAllAsRead() {
     list = list.map((n) => ({ ...n, isRead: true }));
+  },
+
+  async markAsRead(id: number) {
+    const backupList = { ...list };
+    list = list.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+
+    unreadCount = list.filter((n) => !n.isRead).length;
+
+    try {
+      await api.patch(`/notifications/${id}/read`, {});
+    } catch (error) {
+      console.error("Error: ", error);
+      list = backupList;
+    }
   },
 };
