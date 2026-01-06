@@ -1,4 +1,5 @@
 export type Notifications = {
+  id: number;
   title: string;
   message: string;
   link?: string;
