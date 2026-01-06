@@ -5,6 +5,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,5 +26,11 @@ public class NotificationController {
         @PageableDefault(size = 5, sort="createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(notificationService.getNotifications(pageable));
+    }
+
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable long id) {
+        notificationService.markAsRead(id);
+        return ResponseEntity.ok().build();
     }
 }
