@@ -1,7 +1,14 @@
 <script lang="ts">
   import { page } from "$app/state";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-  import { Bell, CircleAlert, MoonIcon, SunIcon } from "lucide-svelte";
+  import {
+    Bell,
+    CircleAlert,
+    MessageSquare,
+    MessageSquareQuote,
+    MoonIcon,
+    SunIcon,
+  } from "lucide-svelte";
   import { toggleMode } from "mode-watcher";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import { ScrollArea } from "$lib/components/ui/scroll-area";
@@ -120,12 +127,23 @@
                   class="flex flex-col hover:bg-base-3 items-start gap-1 p-4 cursor-pointer border-b border-base-border-1 last:border-0 {noti.isRead
                     ? 'opacity-60'
                     : 'bg-base-3'}"
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    notificationStore.markAsRead(noti.id);
+                  }}
                 >
                   <div
-                    class="font-semibold text-xs uppercase text-negative-1 flex items-center gap-2"
+                    class="font-semibold text-xs uppercase text-negative-1 flex items-center gap-2 {noti.type ===
+                    'INTERVIEW'
+                      ? 'text-negative-1'
+                      : 'text-blue-500'}"
                   >
                     <div>
-                      <CircleAlert />
+                      {#if noti.type === "INTERVIEW"}
+                        <CircleAlert class="size-3" />
+                      {:else}
+                        <MessageSquareQuote class="size-3" />
+                      {/if}
                     </div>
                     <div>
                       {noti.title}
