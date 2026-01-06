@@ -55,8 +55,8 @@ public class NotificationService {
             n.getId(),
             n.getTitle(),
             n.getMessage(),
-            n.getLink(),
             n.getType(),
+            n.getLink(),
             n.isRead(),
             n.getCreatedAt()
         ));
@@ -64,5 +64,14 @@ public class NotificationService {
             notificationResponse,
             unreadCount
         ); 
+    }
+
+    public void markAsRead(long id) {
+        int userId = currentUserProvider.getCurrentUserId();
+        Notification notification = notificationRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        notification.setRead(true);
+        notificationRepository.save(notification);
     }
 }
