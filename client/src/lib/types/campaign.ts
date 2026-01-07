@@ -68,3 +68,13 @@ export interface CreateCampaignResponse {
   status: string;
   createdAt: string;
 }
+
+export interface CampaignSetting {
+  automations: Array<{
+    campaignId: string;
+    eventCode: string;
+    fromStage: string;
+    toStage: string;
+    status: boolean;
+  }>;
+}
