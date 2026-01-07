@@ -24,11 +24,15 @@
   import { goto } from "$app/navigation";
   import type { SubmissionWithStage } from "@src/lib/types/submission";
   import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
-
+  import {
+    socketClient,
+    socketStatus,
+  } from "@src/lib/services/Socket.svelte.js";
+  import { page } from "$app/state";
   let dragSourceColumnId = $state<string | null>(null);
+  const user = page.data.user;
   const flipDurationMs = 200;
   const kanbanState = useCampaignState();
-
   const handleDndConsider = (
     columnId: string,
     e: CustomEvent<DndEvent<SubmissionWithStage>>
@@ -44,7 +48,31 @@
 
     updateSubmissionsLocal(items, columnId);
   };
-
+  const stateCampaign = useCampaignState();
+  $effect(() => {
+    if (!socketStatus.connected) {
+      return;
+    }
+    const subscription = socketClient.subscribe(
+      `/topic/${user.id}/campaign/${stateCampaign.campaignId}`,
+      (message) => {
+        const data = JSON.parse(message.body);
+        console.log(data.type);
+        if (data.type === "AI_AUTOMATION_MOVE") {
+          const targetSub = stateCampaign.submissions.find(
+            (s) => s.id === data.submissionId
+          );
+          if (targetSub) {
+            targetSub.stageId = data.toStageId;
+            toast.success(data.message);
+          } else {
+            toast.error("Đã có lỗi xảy ra");
+          }
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  });
   const handleDndFinalize = async (
     columnId: string,
     e: CustomEvent<DndEvent<SubmissionWithStage>>
