@@ -1,6 +1,7 @@
 import { useDebounce } from "@src/lib/hooks/useDebounce.svelte";
 import type {
   CampaignDetail,
+  CampaignSetting,
   CampaignStage,
   CampaignWithSubmission,
 } from "@src/lib/types/campaign";
@@ -30,8 +31,11 @@ export class CampaignDetailState {
     location: "",
     notes: "",
   });
+  isCampaignSettingOpen = $state(false);
   comparisonResult = $state<GeminiComparisonResponse | null>(null);
   isProcessing = $state(false);
+  activeTab = $state("automation");
+  isSaving = $state(false);
   // Page & Search State
   currentPage = $state(0);
   search = $state("");
@@ -149,6 +153,11 @@ export class CampaignDetailState {
     this.isSummaryOpen = true;
   };
 
+  openCampaignSetting = () => {
+    console.log("clicked");
+    this.isCampaignSettingOpen = true;
+  };
+
   copyLink = () => {
     navigator.clipboard.writeText(this.sharedLink);
     toast.success("Sao chép đường dẫn thành công");
@@ -206,6 +215,28 @@ export class CampaignDetailState {
       console.error(error);
     } finally {
       this.interviewLoading = false;
+    }
+  };
+
+  onSaveSetting = async (draftSetting: CampaignSetting) => {
+    console.log("clicked");
+    if (this.isSaving) return;
+    this.isSaving = true;
+
+    try {
+      const response = await api.put(
+        `/campaigns/${this.campaignId}/settings`,
+        draftSetting
+      );
+      if (!response) {
+        console.error("Error");
+      }
+      this.isCampaignSettingOpen = false;
+      toast.success("Đã lưu cài đặt chiến dịch!");
+    } catch (error) {
+      console.error("Save failed:", error);
+    } finally {
+      this.isSaving = false;
     }
   };
 }
