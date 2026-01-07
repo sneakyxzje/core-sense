@@ -1,7 +1,7 @@
 import {
   createSocketClient,
   subscribeSubmissions,
-} from "@src/lib/services/Socket";
+} from "@src/lib/services/Socket.svelte";
 import type {
   SubmissionChart,
   SubmissionEvent,
