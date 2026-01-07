@@ -4,6 +4,7 @@ package com.insight_pulse.tech.submission.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.insight_pulse.tech.automation.domain.AutomationEnum;
+import com.insight_pulse.tech.automation.event.AutomationTriggerEvent;
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
@@ -64,7 +67,7 @@ public class SubmissionService {
     private final CampaignStageRepository campaignStageRepository;
     private final CloudinaryService cloudinaryService; 
     private final PdfExtractor pdfExtractor;
-
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void submitForm(String campaignId, SubmissionRequest request, MultipartFile file) {
@@ -198,6 +201,7 @@ public class SubmissionService {
 
     @Transactional
     public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
+        Integer userId = currentUserProvider.getCurrentUserId();
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Not found"));
         
@@ -227,6 +231,7 @@ public class SubmissionService {
             submission.setScore(aiResult.score());
             
             submissionRepository.save(submission);
+            eventPublisher.publishEvent(new AutomationTriggerEvent(userId ,submission.getCampaign().getId(), submissionId, AutomationEnum.AI_FILTER));
         } catch (Exception e) {
             e.printStackTrace();
         }
