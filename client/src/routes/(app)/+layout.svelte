@@ -4,7 +4,7 @@
   import {
     createSocketClient,
     subscribeNotifications,
-  } from "@src/lib/services/Socket";
+  } from "@src/lib/services/Socket.svelte.js";
   import { notificationStore } from "@src/lib/stores/notification.svelte";
   let { data, children } = $props();
 
