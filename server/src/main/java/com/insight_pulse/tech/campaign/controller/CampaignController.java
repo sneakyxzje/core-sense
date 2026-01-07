@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignRequest;
 import com.insight_pulse.tech.campaign.dto.CampaignResponse;
+import com.insight_pulse.tech.campaign.dto.CampaignSettingRequest;
 import com.insight_pulse.tech.campaign.dto.CampaignStageRequest;
 import com.insight_pulse.tech.campaign.dto.CampaignStageResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignStats;
@@ -28,6 +29,7 @@ import com.insight_pulse.tech.campaign.dto.UpdateCampaignRequest;
 import com.insight_pulse.tech.campaign.dto.UpdateStageColumnRequest;
 import com.insight_pulse.tech.campaign.dto.UpdateStageNameRequest;
 import com.insight_pulse.tech.campaign.service.CampaignService;
+import com.insight_pulse.tech.campaign.service.CampaignSettingsService;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
@@ -40,10 +42,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/campaigns")
 public class CampaignController {
+
     
+    private final CampaignSettingsService campaignSettingsService;
     private final CampaignService campaignService;
     private final SubmissionService submissionService;
-
     @PostMapping
     public ResponseEntity<CampaignResponse> createCampaign(@Valid @RequestBody CampaignRequest request) {
         CampaignResponse response = campaignService.createCampaign(request);
@@ -113,5 +116,14 @@ public class CampaignController {
     @PatchMapping("/stages/{submissionId}/column")
     public ResponseEntity<SubmissionResponse> updateStageColumn(@PathVariable String submissionId, @RequestBody UpdateStageColumnRequest request) {
         return ResponseEntity.ok(submissionService.updateStageColumn(submissionId, request));
+    }
+
+    @PutMapping("/{campaignId}/settings")
+    public ResponseEntity<Void> updateSettings(
+        @PathVariable String campaignId, 
+        @RequestBody CampaignSettingRequest request
+    ) {
+        campaignSettingsService.saveAllSettings(campaignId, request);
+        return ResponseEntity.ok().build();
     }
 }
