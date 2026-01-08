@@ -13,10 +13,7 @@
     Plus,
     Settings,
     Zap,
-    Bell,
     ArrowRight,
-    CalendarDays,
-    Bot,
   } from "lucide-svelte";
   import * as Select from "$lib/components/ui/select";
   import Label from "@src/lib/components/ui/label/label.svelte";
@@ -24,7 +21,7 @@
   import SubmissionDetail from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionDetail.svelte";
   import StatsCard from "@src/routes/(app)/campaigns/[campaignId]/components/StatsCard.svelte";
   import SubmissionTable from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionTable.svelte";
-  import { fly, slide } from "svelte/transition";
+  import { fly } from "svelte/transition";
   import X from "@lucide/svelte/icons/x";
   import Check from "@lucide/svelte/icons/check";
   import SubmissionKanban from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionKanban.svelte";
@@ -50,13 +47,14 @@
     automations: [
       {
         campaignId: states.campaignId ?? "",
-        eventCode: "AI_FILTER",
-        fromStage: "",
-        toStage: "",
-        status: false,
+        eventCode: data.automations?.[0]?.eventCode ?? "AI_FILTER",
+        fromStage: data.automations?.[0]?.fromStageId ?? "",
+        toStage: data.automations?.[0]?.toStageId ?? "",
+        status: data.automations?.[0]?.isActive ?? false,
       },
     ],
   });
+
   const display = $derived({
     source:
       states.columns.find(
