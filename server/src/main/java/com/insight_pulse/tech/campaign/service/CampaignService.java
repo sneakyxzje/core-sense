@@ -6,6 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.insight_pulse.tech.automation.domain.Automation;
+import com.insight_pulse.tech.automation.domain.AutomationRepository;
+import com.insight_pulse.tech.automation.dto.AutomationSummary;
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
@@ -14,11 +17,11 @@ import com.insight_pulse.tech.campaign.domain.CampaignStatus;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignRequest;
 import com.insight_pulse.tech.campaign.dto.CampaignResponse;
-import com.insight_pulse.tech.campaign.dto.CampaignStageRequest;
-import com.insight_pulse.tech.campaign.dto.CampaignStageResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignStats;
 import com.insight_pulse.tech.campaign.dto.UpdateCampaignRequest;
-import com.insight_pulse.tech.campaign.dto.UpdateStageNameRequest;
+import com.insight_pulse.tech.campaign.dto.stage.CreateStageRequest;
+import com.insight_pulse.tech.campaign.dto.stage.StageResponse;
+import com.insight_pulse.tech.campaign.dto.stage.UpdateStageNameRequest;
 import com.insight_pulse.tech.campaign.mapper.CampaignMapper;
 import com.insight_pulse.tech.exception.ResourceNotFoundException;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
@@ -26,7 +29,6 @@ import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.user.domain.User;
 import com.insight_pulse.tech.user.domain.UserRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -39,14 +41,15 @@ public class CampaignService {
     private final CurrentUserProvider currentUserProvider;
     private final CampaignMapper campaignMapper;
     private final CampaignStageRepository campaignStageRepository;
-
-
+    private final AutomationRepository automationRepository;
+    private static final String DEFAULT_STAGE_NAME = "Cột mới";
     private Campaign getOwnedCampaign(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
         return campaignRepository.findByIdAndUserId(campaignId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Campaign not found or access denied"));
     }
 
+    @Transactional
     public CampaignResponse createCampaign(CampaignRequest request) {
         int userId = currentUserProvider.getCurrentUserId();
         User user = userRepository.getReferenceById(userId);
@@ -59,41 +62,28 @@ public class CampaignService {
         );
         Campaign savedCampaign = campaignRepository.save(campaign);
 
-        CampaignStage campaignStage = CampaignStage.create("Cột mới", 0, savedCampaign);
+        CampaignStage campaignStage = CampaignStage.create(DEFAULT_STAGE_NAME, 0, savedCampaign);
         campaignStageRepository.save(campaignStage);
 
         return campaignMapper.toResponse(savedCampaign);
     }
 
-    public CampaignStageResponse createStage(String campaignId, CampaignStageRequest request) {
-        int userId = currentUserProvider.getCurrentUserId();
-        Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId).orElseThrow(() -> new RuntimeException("Campaign not found or permission denied"));
+    @Transactional
+    public StageResponse createStage(String campaignId, CreateStageRequest request) {
+        
+        Campaign campaign = getOwnedCampaign(campaignId); 
 
         Integer maxPosition = campaignStageRepository.findMaxPositionByCampaignId(campaignId);
         int nextPosition = (maxPosition == null) ? 0 : maxPosition + 1;
-        CampaignStage campaignStage = new CampaignStage();
-        campaignStage.setCampaign(campaign);
-        campaignStage.setPosition(nextPosition);
-        campaignStage.setStageName(request.stageName());
+        CampaignStage campaignStage = CampaignStage.create(request.stageName(), nextPosition, campaign);
         campaignStageRepository.save(campaignStage);
-        return new CampaignStageResponse(
-            campaignStage.getId(),
-            request.stageName(),
-            campaign.getId(),
-            nextPosition
-        );
+        return campaignMapper.toStageResponse(campaignStage);
     }
 
-    public List<CampaignStageResponse> getAllStage(String campaignId) {
+    public List<StageResponse> getAllStage(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
-        List<CampaignStage> campaign = campaignStageRepository.findAllByCampaignIdAndCampaignUserId(campaignId, userId);
-
-        return campaign.stream().map((s) -> new CampaignStageResponse(
-            s.getId(),
-            s.getStageName(),
-            s.getCampaign().getId(),
-            s.getPosition()
-        )).toList();
+        List<CampaignStage> stages = campaignStageRepository.findAllByCampaignIdAndCampaignUserId(campaignId, userId);
+        return stages.stream().map(campaignMapper::toStageResponse).toList();
     }
 
     public CampaignStats getCampaignInfo() {
@@ -116,8 +106,7 @@ public class CampaignService {
         return campaignMapper.toDetailResponse(campaign);
     }
 
-
-
+    @Transactional
     public void toggleCampaignStatus(String campaignId, Boolean enabled) {        
         Campaign campaign = getOwnedCampaign(campaignId);
         campaign.toggleStatus(enabled); 
@@ -137,19 +126,22 @@ public class CampaignService {
     }
 
     @Transactional
-    public CampaignStageResponse updateStageName(String stageId, UpdateStageNameRequest request) {
+    public StageResponse updateStageName(String stageId, UpdateStageNameRequest request) {
         int userId = currentUserProvider.getCurrentUserId();
-        CampaignStage campaignStage = campaignStageRepository.findById(stageId)
-        .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cột này"));
-        if (campaignStage.getCampaign().getUser().getId() != userId) {
-            throw new RuntimeException("Bạn không có quyền sửa cột này");
-        }
+        CampaignStage campaignStage = campaignStageRepository.findByIdAndCampaignUserId(stageId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stage not found or access denied"));
         campaignStage.setStageName(request.stageName());
-        return new CampaignStageResponse(
-            campaignStage.getId(),
-            campaignStage.getStageName(),
-            campaignStage.getCampaign().getId(),
-            campaignStage.getPosition()
-        );
+        return campaignMapper.toStageResponse(campaignStage);
+    }
+
+    public List<AutomationSummary> getCampaignAutomations(String campaignId) {
+        Campaign campaign = getOwnedCampaign(campaignId);
+        List<Automation> automations = automationRepository.findAllByCampaignId(campaign.getId());
+        return automations.stream().map((s) -> new AutomationSummary(
+            s.getEventCode(), 
+            (s.getFromStage() != null) ? s.getFromStage().getId() : null, 
+            (s.getToStage() != null) ? s.getToStage().getId() : null,   
+            s.isActive())
+        ).toList();
     }
 }
