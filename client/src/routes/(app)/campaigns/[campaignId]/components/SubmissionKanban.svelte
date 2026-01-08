@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { CampaignDetail, CampaignStage } from "@src/lib/types/campaign";
   import EditableHeader from "@src/routes/(app)/campaigns/[campaignId]/components/EditableHeader.svelte";
   import {
     ArrowRightLeft,
@@ -88,7 +87,7 @@
     if (isChangingColumn) {
       try {
         await api.patch(
-          `/campaigns/stages/${info.id}/column`,
+          `/campaigns/${kanbanState.campaignId}/submissions/${info.id}/stage`,
           {
             stageId: columnId,
           },
@@ -134,7 +133,7 @@
     console.log("target", targetStage);
     try {
       await api.delete(
-        `/submission/stages/delete`,
+        `/campaigns/${stateCampaign.campaignId}/stages/delete`,
         { stageToDelete: stageToDelete, targetStage: targetStage },
         fetch
       );
@@ -164,7 +163,7 @@
 
     try {
       await api.patch(
-        `/submission/${submissionId}/star`,
+        `/submissions/${submissionId}/star`,
         { starred: !oldStatus },
         fetch
       );
