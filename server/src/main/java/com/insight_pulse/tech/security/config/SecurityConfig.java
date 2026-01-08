@@ -70,8 +70,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() 
-                        .requestMatchers(HttpMethod.POST, "/api/submission/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/submission/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/submissions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/feedback/submit").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
                         .requestMatchers("/api/dashboard/**").authenticated()
