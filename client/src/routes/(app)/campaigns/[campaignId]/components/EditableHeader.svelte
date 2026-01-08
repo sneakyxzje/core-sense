@@ -22,7 +22,7 @@
     }
     try {
       await api.patch(
-        `/campaigns/stages/${column.id}`,
+        `/campaigns/${column.campaignId}/stages/${column.id}`,
         { stageName: stageName },
         fetch
       );
