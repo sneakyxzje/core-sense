@@ -41,12 +41,15 @@
         ...others,
       },
     };
-    formData.append("data", JSON.stringify(dtoStructure));
+    const jsonBlob = new Blob([JSON.stringify(dtoStructure)], {
+      type: "application/json",
+    });
+    formData.append("data", jsonBlob);
     isSubmitting = true;
     console.log(dtoStructure);
     console.log("FormData: ", formData);
     try {
-      const res = await api.post(`/submission/${data.campaignId}`, formData);
+      const res = await api.post(`/submissions/${data.campaignId}`, formData);
       if (res) isSuccess = true;
       else alert("Có lỗi xảy ra khi nộp đơn!");
     } finally {
