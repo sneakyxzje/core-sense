@@ -1,10 +1,13 @@
 package com.insight_pulse.tech.campaign.mapper;
 
+
 import org.springframework.stereotype.Component;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
+import com.insight_pulse.tech.campaign.domain.CampaignStage;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignResponse;
+import com.insight_pulse.tech.campaign.dto.stage.StageResponse;
 
 @Component
 public class CampaignMapper {
@@ -22,7 +25,6 @@ public class CampaignMapper {
 
     public CampaignDetailResponse toDetailResponse(Campaign campaign) {
         if (campaign == null) return null;
-
         return new CampaignDetailResponse(
             campaign.getId(),
             campaign.getName(),
@@ -33,6 +35,15 @@ public class CampaignMapper {
             campaign.getCreatedAt(),
             campaign.getUpdatedAt(),
             campaign.getTotalSubmissions()
+        );
+    }
+
+    public StageResponse toStageResponse(CampaignStage stage) {
+        return new StageResponse(
+            stage.getId(),
+            stage.getStageName(),
+            stage.getCampaign().getId(),
+            stage.getPosition()
         );
     }
 }
