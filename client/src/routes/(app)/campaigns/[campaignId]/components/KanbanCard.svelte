@@ -102,7 +102,9 @@
         <div class="flex items-start gap-3">
           <UserRound class="w-5 h-5 mt-1 text-muted-foreground" />
           <div class="text-left">
-            <Dialog.Title class="text-xl font-bold">{s.fullName}</Dialog.Title>
+            <Dialog.Title class="text-xl font-bold"
+              >{state.selectedSubmission?.fullName}</Dialog.Title
+            >
           </div>
         </div>
       </Dialog.Header>
@@ -119,7 +121,8 @@
           <div
             class="ml-8 p-4 rounded-md bg-base-2 border border-base-border-2 text-sm leading-relaxed opacity-90"
           >
-            {s.aiAssessment?.summary || "Chưa có dữ liệu đánh giá..."}
+            {state.selectedSubmission?.aiAssessment?.summary ||
+              "Chưa có dữ liệu đánh giá..."}
           </div>
         </section>
 
@@ -140,8 +143,8 @@
                 >
                   <div class="w-1.5 h-1.5 rounded-full bg-positive-1"></div>
                 </div>
-                {s.aiAssessment?.positive
-                  ? s.aiAssessment.positive
+                {state.selectedSubmission?.aiAssessment?.positive
+                  ? state.selectedSubmission.aiAssessment.positive
                   : "Chưa có đánh giá"}
               </div>
             </div>
@@ -162,8 +165,8 @@
                 >
                   <div class="w-1.5 h-1.5 rounded-full bg-negative-1"></div>
                 </div>
-                {s.aiAssessment?.negative
-                  ? s.aiAssessment.negative
+                {state.selectedSubmission?.aiAssessment?.negative
+                  ? state.selectedSubmission.aiAssessment.negative
                   : "Chưa có đánh giá"}
               </div>
             </div>
