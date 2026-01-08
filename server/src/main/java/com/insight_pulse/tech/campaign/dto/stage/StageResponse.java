@@ -1,6 +1,6 @@
-package com.insight_pulse.tech.campaign.dto;
+package com.insight_pulse.tech.campaign.dto.stage;
 
-public record CampaignStageResponse(
+public record StageResponse(
     String id,
     String stageName,
     String campaignId,

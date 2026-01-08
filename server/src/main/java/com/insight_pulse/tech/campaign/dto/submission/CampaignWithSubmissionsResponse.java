@@ -1,7 +1,8 @@
-package com.insight_pulse.tech.campaign.dto;
+package com.insight_pulse.tech.campaign.dto.submission;
 
 import org.springframework.data.domain.Page;
 
+import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
 
 public record CampaignWithSubmissionsResponse(

@@ -1,4 +1,4 @@
-package com.insight_pulse.tech.campaign.dto;
+package com.insight_pulse.tech.campaign.dto.setting;
 
 import java.util.List;
 
