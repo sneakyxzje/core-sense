@@ -8,8 +8,8 @@ import {
 
 export const load: PageServerLoad = async ({ fetch }) => {
   const [stats, chart, summary] = await Promise.all([
-    api.get<TotalSubmissions>("/campaigns/campaign-info", fetch),
-    api.get<SubmissionChart[]>("/campaigns/submission-chart", fetch),
+    api.get<TotalSubmissions>("/campaigns/stats/info", fetch),
+    api.get<SubmissionChart[]>("/campaigns/stats/submission-chart", fetch),
     api.get<PageResponse<SubmissionSummary>>("/submission", fetch),
   ]);
 
