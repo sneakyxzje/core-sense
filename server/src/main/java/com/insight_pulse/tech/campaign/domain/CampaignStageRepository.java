@@ -26,4 +26,6 @@ public interface CampaignStageRepository extends JpaRepository<CampaignStage, St
     void shiftPositions(@Param("campaignId") String campaignId, @Param("deletedPosition") int deletedPosition);
 
     Optional<CampaignStage> findByCampaignIdAndPosition(String campaignId, int position);
+
+    Optional<CampaignStage> findByIdAndCampaignUserId(String id, int userId);
 }
