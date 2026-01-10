@@ -18,7 +18,9 @@ public class SubmissionMapper {
             s.getAnswers(),
             s.getScore(),
             s.getSubmittedAt(),
-            s.getCurrentStage() != null ? s.getCurrentStage().getId() : null
+            s.getCurrentStage() != null ? s.getCurrentStage().getId() : null,
+            s.getDeletedAt(),
+            s.getCampaign().getName()
         );
     }
 
