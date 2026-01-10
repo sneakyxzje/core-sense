@@ -11,5 +11,7 @@ public record SubmissionResponse(
     Map<String, Object> answer,
     Double score,
     LocalDateTime submittedAt,
-    String stageId
+    String stageId,
+    LocalDateTime deletedAt,
+    String campaignName
 ) {}
