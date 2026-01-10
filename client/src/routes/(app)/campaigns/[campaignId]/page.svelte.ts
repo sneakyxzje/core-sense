@@ -84,6 +84,7 @@ export class CampaignDetailState {
   get campaignId() {
     return this.campaign?.id;
   }
+
   get sharedLink() {
     return `http://localhost:5173/p/${this.campaignId}`;
   }
@@ -154,7 +155,6 @@ export class CampaignDetailState {
   };
 
   openCampaignSetting = () => {
-    console.log("clicked");
     this.isCampaignSettingOpen = true;
   };
 
@@ -219,7 +219,15 @@ export class CampaignDetailState {
   };
 
   onSaveSetting = async (draftSetting: CampaignSetting) => {
-    console.log("clicked");
+    if (
+      draftSetting.automations[0].fromStage ===
+        draftSetting.automations[0].toStage &&
+      draftSetting.automations[0].status
+    ) {
+      toast.error("Không được để 2 cột trùng nhau");
+      return;
+    }
+
     if (this.isSaving) return;
     this.isSaving = true;
 
