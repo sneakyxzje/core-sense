@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SoftDelete;
 import org.hibernate.type.SqlTypes;
 
 import com.insight_pulse.tech.campaign.domain.Campaign;
@@ -25,6 +26,7 @@ import lombok.Data;
 
 @Entity
 @Data
+@SoftDelete(columnName = "is_deleted")
 @Table(name="submissions")
 public class Submission {
     @Id
@@ -67,4 +69,8 @@ public class Submission {
 
     @Column(name = "cv_url", length = 500)
     private String cvUrl;
+
+    private LocalDateTime deletedAt;
+
+
 }
