@@ -1,7 +1,13 @@
 package com.insight_pulse.tech.automation.service;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -21,9 +27,11 @@ import com.insight_pulse.tech.submission.domain.SubmissionRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AutomationService {
     private final AutomationRepository automationRepository;
     private final CampaignRepository campaignRepository;
@@ -61,26 +69,47 @@ public class AutomationService {
         int userId = currentUserProvider.getCurrentUserId();
         Campaign campaign = campaignRepository.findByIdAndUserId(campaignId, userId)
         .orElseThrow(() -> new RuntimeException("Campaign not found"));
+        
+        if(request == null) request = Collections.emptyList();
+
+        List<AutomationRequest> validRequests = request.stream()
+        .filter(req -> req.toStage() != null && !req.fromStage().isEmpty()).toList();
+
+        boolean hasExisting = automationRepository.existsByCampaignId(campaignId);
+        if(validRequests.isEmpty() && !hasExisting) {
+            return;
+        }
+
+        Set<String> stageIds = new HashSet<>();
+        validRequests.forEach(req -> {
+            if(req.fromStage() != null) stageIds.add(req.fromStage());
+            stageIds.add(req.toStage());
+        });
+
+        Map<String, CampaignStage> stageMap = campaignStageRepository.findAllById(stageIds).stream()
+        .collect(Collectors.toMap(CampaignStage::getId, Function.identity()));
+
+
         automationRepository.deleteByCampaignId(campaignId);
         automationRepository.flush();
-        List<Automation> newAutomations = request.stream().map(req -> {
-                CampaignStage from = null;
-                if (req.fromStage() != null && !req.fromStage().isEmpty()) {
-                    from = campaignStageRepository.findById(req.fromStage())
-                        .orElseThrow(() -> new RuntimeException("From stage not found"));
-                }
-                
-                CampaignStage to = campaignStageRepository.findById(req.toStage())
-                    .orElseThrow(() -> new RuntimeException("Target stage not found"));
+
+        if(!validRequests.isEmpty()) {
+            List<Automation> newAutomations = validRequests.stream().map(req -> {
+                CampaignStage from = (req.fromStage() != null) ? stageMap.get(req.fromStage()) : null;
+                CampaignStage to = stageMap.get(req.toStage());
+
+                if(to == null) throw new RuntimeException("Target stage not found");
 
                 return Automation.builder()
-                    .campaign(campaign)
-                    .eventCode(req.eventCode()) 
-                    .fromStage(from)
-                    .toStage(to)
-                    .isActive(req.status())
-                    .build();
+                .campaign(campaign)
+                .eventCode(req.eventCode())
+                .fromStage(from)
+                .toStage(to)
+                .isActive(req.status())
+                .build();
             }).toList();
-        automationRepository.saveAll(newAutomations);
+            automationRepository.saveAll(newAutomations);
+        }
+        
     }
 }
