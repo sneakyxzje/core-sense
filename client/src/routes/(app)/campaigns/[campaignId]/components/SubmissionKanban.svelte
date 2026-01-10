@@ -172,6 +172,19 @@
       toast.error("Lỗi cập nhật, vui lòng thử lại");
     }
   };
+
+  const handleArchive = async (submissionId: string) => {
+    try {
+      await api.post(`/submissions/${submissionId}/archive`, fetch);
+      kanbanState.submissions = kanbanState.submissions.filter(
+        (s) => s.id !== submissionId
+      );
+      toast.success("Archive Submission Success!");
+    } catch (error) {
+      toast.error("Something wrong");
+      console.log(error);
+    }
+  };
 </script>
 
 <div
@@ -310,6 +323,7 @@
 
                 <ContextMenu.Item
                   class="gap-2 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                  onclick={() => handleArchive(s.id)}
                 >
                   <Trash2 />
                   <span>Loại bỏ ứng viên</span>
