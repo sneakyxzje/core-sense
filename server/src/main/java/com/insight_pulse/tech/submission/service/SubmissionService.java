@@ -1,6 +1,7 @@
 package com.insight_pulse.tech.submission.service;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -25,15 +26,16 @@ import com.insight_pulse.tech.campaign.domain.CampaignStageRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStatus;
 import com.insight_pulse.tech.campaign.domain.FormQuestion;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
-import com.insight_pulse.tech.campaign.dto.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.campaign.dto.PublicCampaignResponse;
-import com.insight_pulse.tech.campaign.dto.UpdateStageColumnRequest;
+import com.insight_pulse.tech.campaign.dto.stage.UpdateStageColumnRequest;
+import com.insight_pulse.tech.campaign.dto.submission.CampaignWithSubmissionsResponse;
 import com.insight_pulse.tech.campaign.mapper.CampaignMapper;
 import com.insight_pulse.tech.cloudinary.CloudinaryService;
 import com.insight_pulse.tech.gemini.dto.GeminiRequest;
 import com.insight_pulse.tech.gemini.dto.GeminiResponse;
 import com.insight_pulse.tech.gemini.service.GeminiService;
 import com.insight_pulse.tech.pdf.PdfExtractor;
+import com.insight_pulse.tech.quotas.service.QuotaService;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
@@ -68,6 +70,7 @@ public class SubmissionService {
     private final CloudinaryService cloudinaryService; 
     private final PdfExtractor pdfExtractor;
     private final ApplicationEventPublisher eventPublisher;
+    private final QuotaService quotaService;
 
     @Transactional
     public void submitForm(String campaignId, SubmissionRequest request, MultipartFile file) {
@@ -113,7 +116,32 @@ public class SubmissionService {
         );
     }
 
-    
+    @Transactional
+    public void archiveSubmission(String submissionId) {
+        int userId = currentUserProvider.getCurrentUserId();
+        submissionRepository.archive(submissionId, userId, LocalDateTime.now());
+    }
+
+    @Transactional
+    public void restoreSubmission(String submissionId) {
+        int userId = currentUserProvider.getCurrentUserId();
+        submissionRepository.restore(submissionId, userId);
+    }
+
+    @Transactional
+    public void deleteSubmission(String submissionId) {
+        int userId = currentUserProvider.getCurrentUserId();
+        int result = submissionRepository.hardDelete(submissionId, userId);
+        if (result == 0) {
+            throw new IllegalStateException("Không thể xóa vĩnh viễn ứng viên này.");
+        }
+    }
+
+    public Page<SubmissionResponse> getAllArchive(Pageable pageable) {
+        int userId = currentUserProvider.getCurrentUserId();
+        Page<Submission> submissions = submissionRepository.findAllArchive(userId, pageable);
+        return submissions.map(s -> submissionMapper.toResponse(s));
+    }
 
     public Page<SubmissionSummary> getSubmissionSummary() {
         int userId = currentUserProvider.getCurrentUserId();
@@ -199,29 +227,71 @@ public class SubmissionService {
         submissionRepository.updateStarredStatus(submissionId, request.starred());
     } 
 
-    @Transactional
+    // public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
+    //     Integer userId = currentUserProvider.getCurrentUserId();
+    //     quotaService.validateQuota(userId);
+    //     Submission submission = submissionRepository.findById(submissionId)
+    //             .orElseThrow(() -> new RuntimeException("Not found"));
+        
+    //     String extractCV = "";
+    //     if (submission.getCvUrl() != null && !submission.getCvUrl().isEmpty()) {
+    //         extractCV = pdfExtractor.extractTextFromUrl(submission.getCvUrl());
+    //     }
+
+    //     if (extractCV == null || extractCV.trim().isEmpty()) {
+    //         System.err.println("WARNING: Cannot extract PDF: " + submissionId);
+    //     }
+
+    
+    //     GeminiRequest request = new GeminiRequest(
+    //          submission.getSchemaSnapshot(),
+    //          submission.getAnswers(),
+    //          userPrompt,
+    //          extractCV
+    //     );
+
+    //     GeminiResponse aiResult = geminiService.analyze(request);
+    //     try {
+    //         Map<String, Object> assessmentMap = objectMapper.convertValue(
+    //             aiResult, 
+    //             new TypeReference<Map<String, Object>>() {}
+    //         );
+    //         submission.setAiAssessment(assessmentMap); 
+    //         submission.setScore(aiResult.score());
+            
+    //         submissionRepository.save(submission);
+    //         eventPublisher.publishEvent(new AutomationTriggerEvent(userId ,submission.getCampaign().getId(), submissionId, AutomationEnum.AI_FILTER));
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    //     quotaService.incrementUsage(userId);
+    //     return aiResult;
+    // }
+
     public GeminiResponse analyzeAndSave(String submissionId, String userPrompt) {
         Integer userId = currentUserProvider.getCurrentUserId();
+        quotaService.validateQuota(userId);
+
         Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Not found"));
-        
+        .orElseThrow(() -> new RuntimeException("Not found"));
+
         String extractCV = "";
         if (submission.getCvUrl() != null && !submission.getCvUrl().isEmpty()) {
             extractCV = pdfExtractor.extractTextFromUrl(submission.getCvUrl());
         }
-
-        if (extractCV == null || extractCV.trim().isEmpty()) {
-            System.err.println("WARNING: Cannot extract PDF: " + submissionId);
-        }
-
         GeminiRequest request = new GeminiRequest(
-             submission.getSchemaSnapshot(),
-             submission.getAnswers(),
-             userPrompt,
-             extractCV
+            submission.getSchemaSnapshot(),
+            submission.getAnswers(),
+            userPrompt,
+            extractCV
         );
-
         GeminiResponse aiResult = geminiService.analyze(request);
+        saveResultAndIncrementQuota(submission, aiResult, userId);
+        return aiResult;
+    }
+
+    @Transactional
+    private void saveResultAndIncrementQuota(Submission submission, GeminiResponse aiResult, Integer userId) {
         try {
             Map<String, Object> assessmentMap = objectMapper.convertValue(
                 aiResult, 
@@ -229,13 +299,13 @@ public class SubmissionService {
             );
             submission.setAiAssessment(assessmentMap); 
             submission.setScore(aiResult.score());
-            
+        
             submissionRepository.save(submission);
-            eventPublisher.publishEvent(new AutomationTriggerEvent(userId ,submission.getCampaign().getId(), submissionId, AutomationEnum.AI_FILTER));
-        } catch (Exception e) {
-            e.printStackTrace();
+            quotaService.incrementUsage(userId);
+            eventPublisher.publishEvent(new AutomationTriggerEvent(userId, submission.getCampaign().getId(), submission.getId(), AutomationEnum.AI_FILTER));
+        } catch(Exception e) {
+            throw new RuntimeException("Error while saving AI result: " + e.getMessage());
         }
-        return aiResult;
     }
 
     public GeminiResponse compare(List<SubmissionResponse> request) {
