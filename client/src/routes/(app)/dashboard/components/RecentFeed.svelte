@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowUpRight, Clock, Activity, FileText } from "lucide-svelte";
+  import { ArrowUpRight, Clock, FileText } from "lucide-svelte";
   import * as Card from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import { formatRelativeTime } from "@src/lib/utils/dateUtils";
