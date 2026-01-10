@@ -13,4 +13,6 @@ public interface AutomationRepository extends JpaRepository<Automation, Long>{
     Automation deleteByCampaignId(String campaignId);
 
     List<Automation> findAllByCampaignId(String campaignId);
+
+    boolean existsByCampaignId(String campaignId);
 }
