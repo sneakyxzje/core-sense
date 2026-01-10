@@ -35,6 +35,8 @@ export interface Submission {
   score: number;
   submittedAt: string;
   summary: string;
+  deletedAt: string;
+  campaignName: string;
 }
 
 export interface SubmissionWithStage extends Submission {
