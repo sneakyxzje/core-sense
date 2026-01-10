@@ -2,6 +2,9 @@ package com.insight_pulse.tech.automation.domain;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
 
@@ -48,10 +51,12 @@ public class Automation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_stage_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CampaignStage fromStage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_stage_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CampaignStage toStage;
 
     @Column(nullable = false)
