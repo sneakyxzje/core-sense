@@ -33,7 +33,6 @@
   } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte.js";
   import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
   import Info from "@lucide/svelte/icons/info";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import type { CampaignSetting } from "@src/lib/types/campaign";
 
   let { data } = $props();
@@ -261,7 +260,7 @@
 
 <Dialog.Root bind:open={states.isCampaignSettingOpen}>
   <Dialog.Content
-    class="sm:max-w-[900px] h-[80vh] bg-base-3 border-base-border-1 p-0 overflow-hidden flex flex-col gap-0"
+    class="sm:max-w-[900px] [&>button:last-child]:hidden h-[80vh] bg-base-3 border-base-border-1 p-0 overflow-hidden flex flex-col gap-0"
   >
     <div
       class="px-6 py-4 bg-base-2/80 border-b border-base-border-1 flex justify-between items-center shrink-0 w-full"
@@ -509,9 +508,30 @@
         {#if states.activeTab === "sharing"}
           <div class="animate-in fade-in slide-in-from-bottom-2 space-y-6">
             <h3 class="text-lg font-semibold mb-4">Chia sẻ chiến dịch</h3>
-            <p class="text-sm text-muted-foreground italic">
-              Tính năng này đang được phát triển...
-            </p>
+            <div class="flex flex-col gap-3">
+              <Label for="link" class="text-base-fg-2">Liên kết</Label>
+              <div class="flex items-center gap-2">
+                <Input
+                  id="link"
+                  readonly
+                  value={states.sharedLink}
+                  class="flex-1 bg-base-2 border-base-border-1 text-base-fg-1 focus-visible:ring-primary-1"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  class="shrink-0 border border-base-border-1 bg-base-2 hover:bg-base-3 text-base-fg-1"
+                  onclick={states.copyLink}
+                >
+                  {#if states.copied}
+                    <Check class="h-4 w-4 text-green-500" />
+                  {:else}
+                    <Copy class="h-4 w-4" />
+                  {/if}
+                </Button>
+              </div>
+            </div>
           </div>
         {/if}
       </main>
