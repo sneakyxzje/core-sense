@@ -5,7 +5,7 @@ import type { CampaignPublic } from "@src/lib/types/campaign";
 export const load: PageLoad = async ({ params, fetch }) => {
   const id = params.campaignId;
   const res = await api.get<CampaignPublic>(
-    `/submission/campaign-schema/${id}`,
+    `/submissions/campaign-schema/${id}`,
     fetch
   );
 
