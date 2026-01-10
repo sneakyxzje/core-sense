@@ -13,6 +13,8 @@
     Bell,
     Users,
     LayoutPanelLeft,
+    Trash,
+    Trash2,
   } from "lucide-svelte";
   import { AuthState } from "@src/routes/(auth)/page.svelte";
   const auth = new AuthState();
@@ -30,12 +32,14 @@
       items: [
         { title: "Chiến dịch", url: "/campaigns", icon: FileText },
         { title: "Ứng viên", url: "/candidates", icon: Users },
-        { title: "Kho mẫu", url: "/templates", icon: LayoutPanelLeft },
       ],
     },
     {
       label: "Hệ thống",
-      items: [{ title: "Cài đặt", url: "/settings", icon: Settings }],
+      items: [
+        { title: "Cài đặt", url: "/settings", icon: Settings },
+        { title: "Lưu trữ", url: "/archive", icon: Trash2 },
+      ],
     },
   ];
 </script>
