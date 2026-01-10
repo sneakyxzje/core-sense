@@ -19,6 +19,7 @@
   import { api } from "@src/lib/utils/api";
   import { renderHighlightedText } from "@src/lib/utils/textUtils";
   import type { AiAssessment } from "@src/lib/types/submission";
+  import { toast } from "svelte-sonner";
 
   let { data }: { data: PageData } = $props();
   let isAnalyzing = $state(false);
@@ -60,8 +61,12 @@
       const res = await api.post(`/gemini/${submission.id}/analyze`, payload);
       analysisResult = res as AiAssessment;
     } catch (e: any) {
-      console.error(e);
-      errorMessage = "Lỗi khi gọi AI: " + (e.message || "Không xác định");
+      const errorData = e.data;
+      if (errorData?.error === "QUOTA_EXCEEDED") {
+        toast.error("Bạn đã hết lượt miễn phí");
+      } else {
+        errorMessage = "Lỗi khi gọi AI: " + (e.message || "Không xác định");
+      }
     } finally {
       isAnalyzing = false;
     }
