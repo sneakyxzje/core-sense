@@ -188,7 +188,9 @@
               <span class="block text-[10px] uppercase opacity-50"
                 >AI Score</span
               >
-              <span class="text-xl font-black text-positive-1">{s.score}</span>
+              <span class="text-xl font-black text-positive-1"
+                >{state.selectedSubmission?.score}</span
+              >
             </div>
           </div>
         </div>
