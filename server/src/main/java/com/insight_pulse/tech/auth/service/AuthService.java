@@ -1,7 +1,7 @@
 package com.insight_pulse.tech.auth.service;
 import java.util.List;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.insight_pulse.tech.auth.dto.login.LoginRequest;
 import com.insight_pulse.tech.auth.dto.register.RegisterRequest;
 import com.insight_pulse.tech.auth.dto.register.RegisterResponse;
+import com.insight_pulse.tech.auth.event.UserRegisterEvent;
 import com.insight_pulse.tech.security.principal.UserDetailsImpl;
 import com.insight_pulse.tech.security.token.JwtTokenProvider;
 import com.insight_pulse.tech.user.domain.User;
@@ -32,6 +33,7 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+    private final ApplicationEventPublisher eventPublisher;
     public RegisterResponse register(RegisterRequest request) {
 
         if(userRepository.existsByEmail(request.email())) {
@@ -43,6 +45,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setFullname(request.fullname());
         User saved = userRepository.save(user);
+        eventPublisher.publishEvent(new UserRegisterEvent(user));
         return new RegisterResponse(saved.getId());
     }   
 
