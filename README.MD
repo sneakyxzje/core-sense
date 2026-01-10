@@ -1,66 +1,93 @@
-# CoreSense Project
+# CoreSense
 
-> **AI-Powered Form Analysis for Recruitment and Education.**
+> **AI-Powered Form Intelligence for Recruitment Workflows**
 
-Core Sense is a smart tool that uses AI to pre-screen and analyze form submissions. It helps humans make faster decisions by providing a "first look" at the data.
-
----
-
-## 🚀 What can CoreSense do?
-
-### 💼 1. For Recruitment
-
-Stop wasting hours reading every single CV.
-
-- AI analyzes the candidate's answers.
-- It highlights "Red Flags" (negative) and "Strengths" (positive).
-- You get a summary of the candidate before you even open their profile.
-
-### 🎓 2. For Education
-
-Perfect for English teachers and online courses.
-
-- AI automatically grades students' writing or tests.
-- Teachers don't need to read everything—just check the short AI summary and final score.
-- Saves 80% of grading time.
+CoreSense is an AI-driven system designed to pre-screen, analyze, and structure recruitment form submissions.  
+It helps recruiters reduce screening time by generating structured insights before manual review, while keeping humans fully in control of final decisions.
 
 ---
 
-## ✨ Main Features
+## Overview
 
-- **Smart Screening:** AI gives a preliminary score so you know who to focus on.
-- **Highlight Insights:** Automatically marks parts of the text based on the AI's analysis result
-- **Brief Summaries:** Converts long answers into 2-3 simple sentences.
-- **Easy Dashboard:** Manage all your campaigns and submissions in one place.
+Recruitment teams often spend excessive time reviewing unqualified or low-signal candidates.  
+CoreSense introduces an AI-assisted pre-evaluation layer that analyzes candidate responses and resumes, transforming unstructured data into actionable insights.
 
-* **Human-in-the-loop:** Humans can manually edit the AI's score and feedback. You have the final say!
+The system follows a **human-in-the-loop** approach, ensuring AI recommendations remain transparent, editable, and fully controllable by recruiters.
 
 ---
 
-## 🛠 Tech Stack
+## Recruitment Use Cases
+
+- Automated analysis of candidate form responses and resumes (CVs)
+- AI-generated candidate scoring for early-stage filtering
+- Extraction of strengths and weaknesses from unstructured text
+- Concise candidate summaries before manual review
+- Side-by-side candidate comparison
+- Automated recruitment pipeline with Kanban-style workflow
+
+---
+
+## Core Features
+
+- **AI-Based Scoring Engine**  
+  Generates preliminary candidate scores to help recruiters prioritize candidates efficiently.
+
+- **Strength & Weakness Extraction**  
+  Identifies positive and negative signals directly from candidate inputs.
+
+- **Semantic Summarization**  
+  Condenses long-form answers into 2–3 concise, high-signal sentences.
+
+- **Candidate Comparison**  
+  Enables structured, side-by-side evaluation of multiple candidates.
+
+- **Recruitment Dashboard**  
+  Centralized interface for managing campaigns, submissions, and pipeline stages.
+
+- **Workflow Automation**  
+  Configurable automation for candidate progression and status updates.
+
+- **Human-in-the-Loop Control**  
+  Recruiters can override AI scores, feedback, and decisions at any stage.
+
+---
+
+## System Architecture
 
 - **Frontend:** SvelteKit
-- **Backend:** Java Spring Boot
+- **Backend:** Spring Boot
 - **Database:** PostgreSQL
-- **AI:** Gemini
+- **AI Engine:** Gemini
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-Follow these steps to run the project on your computer:
+### Prerequisites
+
+- Node.js `v18+`
+- Java `17+`
+- PostgreSQL
+- Gemini API Key
+
+### Installation
 
 ```bash
 # 1. Clone the repository
-git clone [git@github.com:sneakyxzje/insight-pulse.git](git@github.com:sneakyxzje/insight-pulse.git)
+git clone git@github.com:sneakyxzje/core-sense.git
 
-# 2. Install dependencies
+# 2. Install frontend dependencies
 cd core-sense/frontend
 npm install
 
-# 3. Setup your .env file
-# Add your API_KEY inside the .env file
+# 3. Environment configuration
+# Create a .env file and add your API_KEY
 
-# 4. Run the project
+# 4. Run the application
+
+# Frontend
 npm run dev
+
+# Backend
+./mvn.cmd spring-boot:run
 ```
