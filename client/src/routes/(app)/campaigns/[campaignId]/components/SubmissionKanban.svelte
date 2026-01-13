@@ -28,6 +28,8 @@
     socketStatus,
   } from "@src/lib/services/Socket.svelte.js";
   import { page } from "$app/state";
+  import Email from "@src/lib/components/Email.svelte";
+  import type { Template } from "@src/lib/types/template";
   let dragSourceColumnId = $state<string | null>(null);
   const user = page.data.user;
   const flipDurationMs = 200;
@@ -185,6 +187,48 @@
       console.log(error);
     }
   };
+
+  let isEmailOpen = $state(false);
+  let emailData = $state({
+    submissionId: "",
+    to: "",
+    subject: "",
+    body: "",
+    slug: "",
+  });
+  let emailTemplate = $state<Template[]>();
+  const showEmail = async (s: any) => {
+    console.log(s);
+    isEmailOpen = true;
+    emailData.to = s.email;
+    emailData.submissionId = s.id;
+    try {
+      const data = await api.get<Template[]>(`/emails`, fetch);
+      emailTemplate = data;
+      console.log(emailTemplate);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSendmail = async (emailData: any) => {
+    const payload = {
+      submissionId: emailData.submissionId,
+      subject: emailData.subject,
+      customBody: emailData.body,
+      variables: {},
+    };
+    console.log(payload);
+    try {
+      await api.post(`/emails`, payload, fetch);
+
+      toast.success("Yêu cầu gửi mail đã được ghi nhận!");
+
+      isEmailOpen = false;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 </script>
 
 <div
@@ -281,6 +325,7 @@
                 <ContextMenu.Group>
                   <ContextMenu.Item
                     class="gap-2 cursor-pointer hover:bg-base-border-hover"
+                    onclick={() => showEmail(s)}
                   >
                     <Mail />
                     <span>Gửi email cho ứng viên</span>
@@ -379,6 +424,102 @@
     </Dialog.Content>
   </Dialog.Root>
 </div>
+
+{#if isEmailOpen}
+  <div
+    class="fixed bottom-[10px] right-10 w-[550px] bg-white shadow-2xl rounded-t-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom duration-300"
+  >
+    <header
+      class="bg-gray-900 text-white p-4 rounded-t-2xl flex justify-between items-center text-sm font-bold"
+    >
+      <span>Thư mới cho ứng viên</span>
+      <button
+        onclick={() => (isEmailOpen = false)}
+        class="hover:text-red-400 text-lg">×</button
+      >
+    </header>
+
+    <div class="p-4 space-y-1">
+      <div
+        class="flex items-baseline gap-2 py-2 border-b border-gray-100 group focus-within:border-blue-500 transition-all duration-200"
+      >
+        <span class="text-gray-400 text-sm font-medium select-none min-w-fit"
+          >To:</span
+        >
+        <input
+          bind:value={emailData.to}
+          class="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-300 placeholder:font-normal"
+          placeholder="recipients@example.com"
+        />
+      </div>
+
+      <div
+        class="flex items-baseline gap-2 py-2 border-b border-gray-100 group focus-within:border-blue-500 transition-all duration-200"
+      >
+        <span class="text-gray-400 text-sm font-medium select-none min-w-fit"
+          >Subject:</span
+        >
+        <input
+          bind:value={emailData.subject}
+          class="flex-1 bg-transparent outline-none text-sm text-gray-800 font-bold placeholder:text-gray-300 placeholder:font-normal"
+          placeholder="Tiêu đề thư mời..."
+        />
+      </div>
+
+      <div
+        class="flex items-baseline gap-2 py-2 border-b border-gray-100 group focus-within:border-blue-500 transition-all duration-200"
+      >
+        <span class="text-gray-400 text-sm font-medium select-none min-w-fit"
+          >Template:</span
+        >
+
+        <select
+          class="flex-1 bg-transparent outline-none text-sm text-blue-600 font-semibold cursor-pointer appearance-none"
+          onchange={(e) => {
+            const selected = emailTemplate?.find(
+              (t) => t.slug === e.target?.value
+            );
+            if (selected) {
+              emailData.subject = selected.subject;
+              emailData.body = selected.customBody;
+              emailData.slug = selected.slug;
+            }
+          }}
+        >
+          <option value="" class="text-gray-400"
+            >-- Chọn mẫu thư để bắt đầu nhanh --</option
+          >
+          {#each emailTemplate as t}
+            <option value={t.slug} class="text-gray-800">{t.name}</option>
+          {/each}
+        </select>
+      </div>
+
+      <div class="min-h-[250px] pt-2">
+        <Email
+          bind:content={emailData.body}
+          placeholder="Viết nội dung thư mời..."
+        />
+      </div>
+    </div>
+
+    <footer
+      class="p-4 flex justify-between items-center border-t border-gray-50"
+    >
+      <div class="flex items-center gap-2">
+        <button
+          class="bg-blue-600 text-white px-8 py-2 rounded-full font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
+          onclick={() => handleSendmail(emailData)}
+        >
+          Gửi
+        </button>
+      </div>
+      <div class="flex space-x-4 text-gray-400 text-sm italic">
+        <span class="text-[10px]">Cá nhân hóa với [[candidate_name]]</span>
+      </div>
+    </footer>
+  </div>
+{/if}
 
 <style>
   .custom-scrollbar::-webkit-scrollbar {
