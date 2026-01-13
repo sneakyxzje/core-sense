@@ -30,6 +30,7 @@ export interface Submission {
   userPrompts: string;
   id: string;
   fullName: string;
+  email: string;
   aiAssessment: Record<string, any>;
   answer: Record<string, any>;
   score: number;
