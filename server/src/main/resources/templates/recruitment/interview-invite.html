@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email từ CoreSense Slug</title>
+  </head>
+  <body>
+    <h1 th:text="'Chào ' + ${candidateName} + '!'">Chào ứng viên!</h1>
+
+    <p>Chúc mừng bạn đã hoàn thành bài đánh giá từ <b>CoreSense AI Slug</b>.</p>
+
+    <p>Điểm số của bạn là: <span th:text="${aiScore}">0</span>/100</p>
+
+    <div style="margin-top: 20px">
+      <a
+        th:href="${actionUrl}"
+        style="
+          background: #2563eb;
+          color: white;
+          padding: 10px 20px;
+          text-decoration: none;
+          border-radius: 5px;
+        "
+      >
+        Xem chi tiết kết quả
+      </a>
+    </div>
+  </body>
+</html>
