@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      .email-body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #777;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-body">
+      <div th:utext="${bodyContent}">Nội dung thư...</div>
+
+      <div th:if="${actionUrl}" style="margin-top: 20px">
+        <a
+          th:href="${actionUrl}"
+          style="
+            background: #2563eb;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+          "
+        >
+          Xem chi tiết kết quả
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      Email này được gửi tự động từ hệ thống <strong>CoreSense</strong>.
+    </div>
+  </body>
+</html>
