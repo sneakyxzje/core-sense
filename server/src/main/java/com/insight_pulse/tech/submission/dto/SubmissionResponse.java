@@ -7,6 +7,7 @@ import java.util.Map;
 public record SubmissionResponse(
     String id,
     String fullName,
+    String email,
     Map<String, Object> aiAssessment,
     Map<String, Object> answer,
     Double score,
