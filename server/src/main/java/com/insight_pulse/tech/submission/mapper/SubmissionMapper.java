@@ -14,6 +14,7 @@ public class SubmissionMapper {
         return new SubmissionResponse(
             s.getId(),
             s.getFullname(),
+            s.getEmail(),
             s.getAiAssessment(),
             s.getAnswers(),
             s.getScore(),
@@ -34,7 +35,8 @@ public class SubmissionMapper {
             s.getSubmittedAt(),
             s.getSchemaSnapshot(),
             s.getCvUrl(),
-            s.getFullname()
+            s.getFullname(),
+            s.getEmail()
         );
     }
 }
