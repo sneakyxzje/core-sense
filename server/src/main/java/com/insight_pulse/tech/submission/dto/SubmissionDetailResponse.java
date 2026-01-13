@@ -15,5 +15,6 @@ public record SubmissionDetailResponse(
     LocalDateTime submittedAt,
     List<FormQuestion> snapshotSchema,
     String cvUrl,
-    String fullName
+    String fullName,
+    String email
 ) {}
