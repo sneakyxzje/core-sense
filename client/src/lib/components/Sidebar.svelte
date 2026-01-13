@@ -17,6 +17,7 @@
     Trash2,
   } from "lucide-svelte";
   import { AuthState } from "@src/routes/(auth)/page.svelte";
+  import { goto } from "$app/navigation";
   const auth = new AuthState();
 
   const items = [
@@ -138,7 +139,7 @@
               </DropdownMenu.Label>
               <DropdownMenu.Separator />
               <DropdownMenu.Group>
-                <DropdownMenu.Item>
+                <DropdownMenu.Item onclick={() => goto("/subscription")}>
                   <Sparkles class="mr-2 size-4" />
                   Nâng cấp Pro
                 </DropdownMenu.Item>
