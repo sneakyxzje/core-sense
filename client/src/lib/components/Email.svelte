@@ -34,7 +34,7 @@
       editorProps: {
         attributes: {
           class:
-            "outline-none min-h-[200px] p-4 prose prose-sm max-w-none  text-sm leading-relaxed",
+            "outline-none min-h-[200px] p-4 prose prose-sm max-w-none  text-base-fg-1 text-sm leading-relaxed",
         },
       },
     });
@@ -46,15 +46,17 @@
 </script>
 
 <div
-  class="flex flex-col w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+  class="flex flex-col w-full bg-base-3 border border-base-border-1 rounded-lg overflow-hidden shadow-sm"
 >
-  <div class="flex items-center gap-1 p-1 bg-gray-50 border-b border-gray-100">
+  <div
+    class="flex items-center gap-1 p-1 bg-base-2 text-white border-b border-base-border-1"
+  >
     {#if editor}
       <button
         onclick={() => editor?.chain().focus().toggleBold().run()}
         class="p-1.5 rounded hover:bg-gray-200 {editor.isActive('bold')
-          ? 'text-blue-600 bg-blue-50'
-          : 'text-gray-500'}"
+          ? 'text-base-fg-1 bg-blue-50'
+          : 'text-base-fg-1'}"
       >
         <Bold size={14} />
       </button>
@@ -62,7 +64,7 @@
         onclick={() => editor?.chain().focus().toggleItalic().run()}
         class="p-1.5 rounded hover:bg-gray-200 {editor.isActive('italic')
           ? 'text-blue-600 bg-blue-50'
-          : 'text-gray-500'}"
+          : 'text-base-fg-1'}"
       >
         <Italic size={14} />
       </button>
@@ -70,7 +72,7 @@
         onclick={() => editor?.chain().focus().toggleUnderline().run()}
         class="p-1.5 rounded hover:bg-gray-200 {editor.isActive('underline')
           ? 'text-blue-600 bg-blue-50'
-          : 'text-gray-500'}"
+          : 'text-base-fg-1'}"
       >
         <UnderlineIcon size={14} />
       </button>
@@ -78,7 +80,7 @@
         onclick={() => editor?.chain().focus().toggleBulletList().run()}
         class="p-1.5 rounded hover:bg-gray-200 {editor.isActive('bulletList')
           ? 'text-blue-600 bg-blue-50'
-          : 'text-gray-500'}"
+          : 'text-base-fg-1'}"
       >
         <List size={14} />
       </button>
@@ -90,10 +92,14 @@
 
 <style>
   :global(.tiptap p.is-editor-empty:first-child::before) {
-    color: #adb5bd;
     content: attr(data-placeholder);
     float: left;
     height: 0;
     pointer-events: none;
+  }
+  :global(.ProseMirror b),
+  :global(.ProseMirror strong) {
+    color: var(--color-base-fg-1); /* Màu xám giống text thường */
+    font-weight: 700; /* Vẫn giữ độ đậm nhưng cùng màu */
   }
 </style>
