@@ -216,6 +216,7 @@
       submissionId: emailData.submissionId,
       subject: emailData.subject,
       customBody: emailData.body,
+      templateSlug: emailData.slug,
       variables: {},
     };
     console.log(payload);
@@ -427,12 +428,12 @@
 
 {#if isEmailOpen}
   <div
-    class="fixed bottom-[10px] right-10 w-[550px] bg-white shadow-2xl rounded-t-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom duration-300"
+    class="fixed bottom-[10px] right-10 w-[550px] bg-base-4 shadow-2xl rounded-t-md border border-base-border-1 flex flex-col z-50 animate-in slide-in-from-bottom duration-300"
   >
     <header
-      class="bg-gray-900 text-white p-4 rounded-t-2xl flex justify-between items-center text-sm font-bold"
+      class="bg-base-3 text-base-fg-1 p-4 border-b border-base-border-2 rounded-t-md flex justify-between items-center text-sm font-bold"
     >
-      <span>Thư mới cho ứng viên</span>
+      <span>THƯ MỚI</span>
       <button
         onclick={() => (isEmailOpen = false)}
         class="hover:text-red-400 text-lg">×</button
@@ -441,27 +442,27 @@
 
     <div class="p-4 space-y-1">
       <div
-        class="flex items-baseline gap-2 py-2 border-b border-gray-100 group focus-within:border-blue-500 transition-all duration-200"
+        class="flex items-baseline gap-2 py-2 border-b border-base-border-1 group transition-all duration-200"
       >
         <span class="text-gray-400 text-sm font-medium select-none min-w-fit"
           >To:</span
         >
         <input
           bind:value={emailData.to}
-          class="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-300 placeholder:font-normal"
+          class="flex-1 bg-transparent border border-base-border-1 outline-none text-sm text-base-fg-1 placeholder:text-base-fg-3 placeholder:font-normal"
           placeholder="recipients@example.com"
         />
       </div>
 
       <div
-        class="flex items-baseline gap-2 py-2 border-b border-gray-100 group focus-within:border-blue-500 transition-all duration-200"
+        class="flex items-baseline gap-2 py-2 border-b border-base-border-1 group transition-all duration-200"
       >
         <span class="text-gray-400 text-sm font-medium select-none min-w-fit"
           >Subject:</span
         >
         <input
           bind:value={emailData.subject}
-          class="flex-1 bg-transparent outline-none text-sm text-gray-800 font-bold placeholder:text-gray-300 placeholder:font-normal"
+          class="flex-1 bg-transparent border border-base-border-1 outline-none text-sm text-base-fg-1 placeholder:text-base-fg-3 placeholder:font-normal"
           placeholder="Tiêu đề thư mời..."
         />
       </div>
@@ -474,7 +475,7 @@
         >
 
         <select
-          class="flex-1 bg-transparent outline-none text-sm text-blue-600 font-semibold cursor-pointer appearance-none"
+          class="flex-1 bg-base-4 border border-base-border-1 outline-none text-sm text-base-fg-1 placeholder:text-base-fg-3 placeholder:font-normal"
           onchange={(e) => {
             const selected = emailTemplate?.find(
               (t) => t.slug === e.target?.value
@@ -490,7 +491,7 @@
             >-- Chọn mẫu thư để bắt đầu nhanh --</option
           >
           {#each emailTemplate as t}
-            <option value={t.slug} class="text-gray-800">{t.name}</option>
+            <option value={t.slug} class="text-base-fg-1">{t.name}</option>
           {/each}
         </select>
       </div>
