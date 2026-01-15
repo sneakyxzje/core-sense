@@ -1,0 +1,58 @@
+services:
+  postgres-db:
+    image: postgres:17.5-alpine
+    container_name: pulse-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${DB_PORT_EXTERNAL}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis-cache:
+    image: redis:7.2-alpine
+    container_name: pulse-redis
+    ports:
+      - "${REDIS_PORT_EXTERNAL}:6379"
+
+  backend:
+    build: ./server
+    container_name: pulse-api
+    depends_on:
+      - postgres-db
+      - redis-cache
+    ports:
+      - "${BACKEND_PORT_EXTERNAL}:8080"
+    environment:
+      APP_COOKIE_SAMESITE: Lax
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Ho_Chi_Minh
+      SPRING_DATA_REDIS_HOST: redis-cache
+
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+
+      JWT_SECRET: ${JWT_SECRET}
+
+  frontend:
+    build: ./client
+    container_name: pulse-web
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT_EXTERNAL}:3000"
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      PUBLIC_INTERNAL_API_URL: http://backend:8080/api
+
+volumes:
+  postgres_data:
