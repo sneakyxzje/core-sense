@@ -121,7 +121,7 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders: Record<string, string>
+    extraHeaders?: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
@@ -134,7 +134,7 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders: Record<string, string>
+    extraHeaders?: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
@@ -147,7 +147,7 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders: Record<string, string>
+    extraHeaders?: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
