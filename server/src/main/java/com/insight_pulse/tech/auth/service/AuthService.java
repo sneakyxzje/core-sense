@@ -1,6 +1,7 @@
 package com.insight_pulse.tech.auth.service;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +35,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${app.cookie.samesite:Strict}") 
+    
+    private String sameSite;
     public RegisterResponse register(RegisterRequest request) {
 
         if(userRepository.existsByEmail(request.email())) {
@@ -63,7 +68,7 @@ public class AuthService {
                 .secure(false) 
                 .path("/")
                 .maxAge(7 * 24 * 60 * 60) 
-                .sameSite("Strict") 
+                .sameSite(sameSite) 
                 .build();
 
             ResponseCookie accessTokenCookie = ResponseCookie.from("jwt", token)
@@ -71,7 +76,7 @@ public class AuthService {
                 .secure(false) 
                 .path("/")
                 .maxAge(jwtTokenProvider.getExpiryInSeconds())
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .build();
             return List.of(refreshTokenCookie, accessTokenCookie);
     }
