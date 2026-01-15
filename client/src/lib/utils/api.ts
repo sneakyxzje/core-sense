@@ -1,6 +1,11 @@
 import { browser } from "$app/environment";
+import { env } from "$env/dynamic/public";
+const BASE_URL = browser
+  ? env.PUBLIC_API_URL
+  : env.PUBLIC_INTERNAL_API_URL ||
+    env.PUBLIC_API_URL ||
+    "http://backend:8080/api";
 
-const BASE_URL = "http://localhost:8080/api";
 export type Fetch = typeof fetch;
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -26,11 +31,18 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return data as T;
 };
 
-const refreshAccessToken = async (customFetch: Fetch): Promise<boolean> => {
+const refreshAccessToken = async (
+  customFetch: Fetch,
+  headers: Record<string, string>
+): Promise<boolean> => {
   try {
-    const res = await customFetch("http://localhost:8080/api/auth/refresh", {
+    const res = await customFetch(`${BASE_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
     });
     return res.ok;
   } catch (error) {
@@ -46,6 +58,7 @@ const request = async <T>(
 ): Promise<T> => {
   const url = `${BASE_URL}${endpoint}`;
   const headers = { ...options.headers } as Record<string, string>;
+
   let finalBody = options.body;
   if (options.body && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
@@ -60,7 +73,7 @@ const request = async <T>(
 
   const response = await customFetch(url, finalOptions);
   if ((response.status === 401 || response.status === 403) && !isRetry) {
-    const refreshSuccess = await refreshAccessToken(customFetch);
+    const refreshSuccess = await refreshAccessToken(customFetch, headers);
 
     if (refreshSuccess) {
       return request<T>(endpoint, options, customFetch, true);
@@ -74,14 +87,23 @@ const request = async <T>(
 };
 
 export const api = {
-  get: async <T>(endpoint: string, customFetch: Fetch = fetch): Promise<T> => {
-    return request<T>(endpoint, { method: "GET" }, customFetch);
+  get: async <T>(
+    endpoint: string,
+    customFetch: Fetch = fetch,
+    extraHeaders?: Record<string, string>
+  ): Promise<T> => {
+    return request<T>(
+      endpoint,
+      { method: "GET", headers: extraHeaders },
+      customFetch
+    );
   },
 
   post: async <T, D>(
     endpoint: string,
     data: D,
-    customFetch: Fetch = fetch
+    customFetch: Fetch = fetch,
+    extraHeaders?: Record<string, string>
   ): Promise<T> => {
     const isFormData = data instanceof FormData;
     return request<T>(
@@ -89,6 +111,7 @@ export const api = {
       {
         method: "POST",
         body: isFormData ? (data as any) : (data as any),
+        headers: extraHeaders,
       },
       customFetch
     );
@@ -97,11 +120,12 @@ export const api = {
   put: async <T, D>(
     endpoint: string,
     data: D,
-    customFetch: Fetch = fetch
+    customFetch: Fetch = fetch,
+    extraHeaders: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "PUT", body: data as any },
+      { method: "PUT", body: data as any, headers: extraHeaders },
       customFetch
     );
   },
@@ -109,11 +133,12 @@ export const api = {
   patch: async <T, D>(
     endpoint: string,
     data: D,
-    customFetch: Fetch = fetch
+    customFetch: Fetch = fetch,
+    extraHeaders: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "PATCH", body: data as any },
+      { method: "PATCH", body: data as any, headers: extraHeaders },
       customFetch
     );
   },
@@ -121,11 +146,12 @@ export const api = {
   delete: async <T, D>(
     endpoint: string,
     data: D,
-    customFetch: Fetch = fetch
+    customFetch: Fetch = fetch,
+    extraHeaders: Record<string, string>
   ): Promise<T> => {
     return request<T>(
       endpoint,
-      { method: "DELETE", body: data as any },
+      { method: "DELETE", body: data as any, headers: extraHeaders },
       customFetch
     );
   },
