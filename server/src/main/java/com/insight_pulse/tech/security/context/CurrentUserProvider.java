@@ -11,6 +11,11 @@ public class CurrentUserProvider {
     
     public UserDetailsImpl getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || 
+            !authentication.isAuthenticated() || 
+            !(authentication.getPrincipal() instanceof UserDetailsImpl)) {
+            return null; 
+        }
         return (UserDetailsImpl) authentication.getPrincipal();
     }
     
