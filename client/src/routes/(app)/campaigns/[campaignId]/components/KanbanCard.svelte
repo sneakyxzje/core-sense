@@ -14,7 +14,7 @@
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import Button from "@src/lib/components/ui/button/button.svelte";
   import type { SubmissionWithStage } from "@src/lib/types/submission";
-  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
 
   let { s }: { s: SubmissionWithStage } = $props();
   const state = useCampaignState();
@@ -22,7 +22,7 @@
 
 <button
   class="group relative flex flex-col cursor-pointer w-full text-left bg-base-3 border border-transparent hover:border-base-border-1 rounded-lg p-4 shadow-sm transition-all hover:shadow-md flex-shrink-0"
-  onclick={() => state.openSummary(s)}
+  onclick={() => state.submissions.openSummary(s)}
 >
   {#if s.starred}
     <div
@@ -93,7 +93,7 @@
   </div>
 </button>
 
-<Dialog.Root bind:open={state.isSummaryOpen}>
+<Dialog.Root bind:open={state.submissions.isSummaryOpen}>
   <Dialog.Content
     class="sm:max-w-[800px] bg-base-3 border-base-border-1 p-0 overflow-hidden"
   >
@@ -103,7 +103,7 @@
           <UserRound class="w-5 h-5 mt-1 text-muted-foreground" />
           <div class="text-left">
             <Dialog.Title class="text-xl font-bold"
-              >{state.selectedSubmission?.fullName}</Dialog.Title
+              >{state.submissions.selectedSubmission?.fullName}</Dialog.Title
             >
           </div>
         </div>
@@ -121,7 +121,7 @@
           <div
             class="ml-8 p-4 rounded-md bg-base-2 border border-base-border-2 text-sm leading-relaxed opacity-90"
           >
-            {state.selectedSubmission?.aiAssessment?.summary ||
+            {state.submissions.selectedSubmission?.aiAssessment?.summary ||
               "Chưa có dữ liệu đánh giá..."}
           </div>
         </section>
@@ -143,8 +143,8 @@
                 >
                   <div class="w-1.5 h-1.5 rounded-full bg-positive-1"></div>
                 </div>
-                {state.selectedSubmission?.aiAssessment?.positive
-                  ? state.selectedSubmission.aiAssessment.positive
+                {state.submissions.selectedSubmission?.aiAssessment?.positive
+                  ? state.submissions.selectedSubmission.aiAssessment.positive
                   : "Chưa có đánh giá"}
               </div>
             </div>
@@ -165,8 +165,8 @@
                 >
                   <div class="w-1.5 h-1.5 rounded-full bg-negative-1"></div>
                 </div>
-                {state.selectedSubmission?.aiAssessment?.negative
-                  ? state.selectedSubmission.aiAssessment.negative
+                {state.submissions.selectedSubmission?.aiAssessment?.negative
+                  ? state.submissions.selectedSubmission.aiAssessment.negative
                   : "Chưa có đánh giá"}
               </div>
             </div>
@@ -189,7 +189,7 @@
                 >AI Score</span
               >
               <span class="text-xl font-black text-positive-1"
-                >{state.selectedSubmission?.score}</span
+                >{state.submissions.selectedSubmission?.score}</span
               >
             </div>
           </div>
@@ -205,7 +205,10 @@
             <Button
               variant="secondary"
               class="justify-start gap-2 h-8 text-xs bg-base-3 hover:bg-base-border-2"
-              onclick={() => state.handleInterview(state.selectedSubmission)}
+              onclick={() =>
+                state.submissions.handleInterview(
+                  state.submissions.selectedSubmission,
+                )}
             >
               <CalendarDays class="w-3.5 h-3.5" /> Phỏng vấn
             </Button>
@@ -233,7 +236,7 @@
           <Button
             variant="ghost"
             class="w-full justify-start gap-2 h-8 text-xs text-negative-1 hover:bg-negative-1/10"
-            onclick={() => (state.isSummaryOpen = false)}
+            onclick={() => (state.submissions.isSummaryOpen = false)}
           >
             <X class="w-3.5 h-3.5" /> Đóng lại
           </Button>
@@ -243,17 +246,17 @@
   </Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root bind:open={state.isInterviewOpen}>
+<Dialog.Root bind:open={state.submissions.isInterviewOpen}>
   <Dialog.Content
     class="sm:max-w-[800px] bg-base-3 border-base-border-1 p-0 overflow-hidden"
   >
-    {#if state.selectedSubmission}
+    {#if state.submissions.selectedSubmission}
       <div class="px-6 py-4 bg-base-2/50 border-b border-base-border-1">
         <Dialog.Header>
           <div class="text-left">
             <Dialog.Title class="text-xl font-bold">Phỏng vấn</Dialog.Title>
             <p class="text-xs text-muted-foreground">
-              Ứng viên: {state.selectedSubmission.fullName}
+              Ứng viên: {state.submissions.selectedSubmission.fullName}
             </p>
           </div>
         </Dialog.Header>
@@ -270,7 +273,7 @@
             <div class="ml-7">
               <input
                 type="datetime-local"
-                bind:value={state.interviewForm.schedule}
+                bind:value={state.submissions.interviewForm.schedule}
                 class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm"
               />
             </div>
@@ -284,7 +287,7 @@
               <input
                 type="text"
                 placeholder="Google Meet link..."
-                bind:value={state.interviewForm.location}
+                bind:value={state.submissions.interviewForm.location}
                 class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm"
               />
             </div>
@@ -298,7 +301,7 @@
               <textarea
                 rows="4"
                 placeholder="Nhắc nhở ứng viên..."
-                bind:value={state.interviewForm.notes}
+                bind:value={state.submissions.interviewForm.notes}
                 class="w-full p-3 rounded-md bg-base-2 border border-base-border-2 text-sm resize-none"
               ></textarea>
             </div>
@@ -316,17 +319,17 @@
               <Button
                 variant="default"
                 class="bg-primary-1 text-white"
-                onclick={() => state.executeInterview()}
-                disabled={state.interviewLoading}
+                onclick={() => state.submissions.executeInterview()}
+                disabled={state.submissions.interviewLoading}
               >
-                {#if state.interviewLoading}<span
+                {#if state.submissions.interviewLoading}<span
                     class="loading loading-spinner loading-xs"
                   ></span>{/if}
                 <Check class="w-3.5 h-3.5" /> Lưu lịch hẹn
               </Button>
               <Button
                 variant="secondary"
-                onclick={() => (state.isInterviewOpen = false)}
+                onclick={() => (state.submissions.isInterviewOpen = false)}
               >
                 <X class="w-3.5 h-3.5" /> Hủy bỏ
               </Button>
