@@ -33,7 +33,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
 const refreshAccessToken = async (
   customFetch: Fetch,
-  headers: Record<string, string>
+  headers: Record<string, string>,
 ): Promise<boolean> => {
   try {
     const res = await customFetch(`${BASE_URL}/auth/refresh`, {
@@ -54,7 +54,7 @@ const request = async <T>(
   endpoint: string,
   options: RequestInit,
   customFetch: Fetch = fetch,
-  isRetry = false
+  isRetry = false,
 ): Promise<T> => {
   const url = `${BASE_URL}${endpoint}`;
   const headers = { ...options.headers } as Record<string, string>;
@@ -90,12 +90,12 @@ export const api = {
   get: async <T>(
     endpoint: string,
     customFetch: Fetch = fetch,
-    extraHeaders?: Record<string, string>
+    extraHeaders?: Record<string, string>,
   ): Promise<T> => {
     return request<T>(
       endpoint,
       { method: "GET", headers: extraHeaders },
-      customFetch
+      customFetch,
     );
   },
 
@@ -103,7 +103,7 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders?: Record<string, string>
+    extraHeaders?: Record<string, string>,
   ): Promise<T> => {
     const isFormData = data instanceof FormData;
     return request<T>(
@@ -113,7 +113,7 @@ export const api = {
         body: isFormData ? (data as any) : (data as any),
         headers: extraHeaders,
       },
-      customFetch
+      customFetch,
     );
   },
 
@@ -121,12 +121,12 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders?: Record<string, string>
+    extraHeaders?: Record<string, string>,
   ): Promise<T> => {
     return request<T>(
       endpoint,
       { method: "PUT", body: data as any, headers: extraHeaders },
-      customFetch
+      customFetch,
     );
   },
 
@@ -134,12 +134,12 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders?: Record<string, string>
+    extraHeaders?: Record<string, string>,
   ): Promise<T> => {
     return request<T>(
       endpoint,
       { method: "PATCH", body: data as any, headers: extraHeaders },
-      customFetch
+      customFetch,
     );
   },
 
@@ -147,12 +147,12 @@ export const api = {
     endpoint: string,
     data: D,
     customFetch: Fetch = fetch,
-    extraHeaders?: Record<string, string>
+    extraHeaders?: Record<string, string>,
   ): Promise<T> => {
     return request<T>(
       endpoint,
       { method: "DELETE", body: data as any, headers: extraHeaders },
-      customFetch
+      customFetch,
     );
   },
 };
