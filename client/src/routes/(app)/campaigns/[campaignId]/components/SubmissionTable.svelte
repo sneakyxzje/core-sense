@@ -11,7 +11,7 @@
   import Button from "@src/lib/components/ui/button/button.svelte";
   import Checkbox from "@src/lib/components/ui/checkbox/checkbox.svelte";
   import { getScoreColor } from "@src/lib/utils/styleUtils";
-  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
   import { ArrowUpDown, Eye } from "lucide-svelte";
 
   const state = useCampaignState();
@@ -45,10 +45,10 @@
         </TableRow>
       </TableHeader>
       <TableBody>
-        {#each state.submissions as sub}
+        {#each state.submissions.items as sub}
           <TableRow
             class="hover:bg-base-hover cursor-pointer border-base-border-1 transition-colors group"
-            onclick={() => state.openDetail(sub)}
+            onclick={() => state.submissions.openDetail(sub)}
           >
             <TableCell class="font-medium align-top py-4">
               <div class="flex flex-col gap-1">
@@ -119,9 +119,9 @@
                 <Checkbox
                   class="border-base-border-2 bg-base-2"
                   onCheckedChange={(checked) =>
-                    state.checkComparison(checked, sub)}
-                  checked={state.stateComparison.some(
-                    (item) => item.id === sub.id
+                    state.submissions.checkComparison(checked, sub)}
+                  checked={state.submissions.stateComparison.some(
+                    (item) => item.id === sub.id,
                   )}
                 />
               </div>
