@@ -14,5 +14,6 @@ public record SubmissionResponse(
     LocalDateTime submittedAt,
     String stageId,
     LocalDateTime deletedAt,
-    String campaignName
+    String campaignName,
+    boolean starred
 ) {}
