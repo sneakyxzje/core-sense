@@ -99,7 +99,7 @@
   }
   :global(.ProseMirror b),
   :global(.ProseMirror strong) {
-    color: var(--color-base-fg-1); /* Màu xám giống text thường */
-    font-weight: 700; /* Vẫn giữ độ đậm nhưng cùng màu */
+    color: var(--color-base-fg-1); 
+    font-weight: 700; 
   }
 </style>
