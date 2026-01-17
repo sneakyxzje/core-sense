@@ -2,7 +2,7 @@
   import {
     useCampaignState,
     type CampaignDetailState,
-  } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
+  } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
 
   const state = useCampaignState();
 </script>
