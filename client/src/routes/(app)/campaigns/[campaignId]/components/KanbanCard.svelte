@@ -13,10 +13,10 @@
   } from "lucide-svelte";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import Button from "@src/lib/components/ui/button/button.svelte";
-  import type { SubmissionWithStage } from "@src/lib/types/submission";
   import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
+  import type { Submission } from "@src/lib/types/submission";
 
-  let { s }: { s: SubmissionWithStage } = $props();
+  let { s }: { s: Submission } = $props();
   const state = useCampaignState();
 </script>
 
