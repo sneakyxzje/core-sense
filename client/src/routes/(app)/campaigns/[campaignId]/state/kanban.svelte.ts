@@ -1,5 +1,5 @@
 import type { CampaignStage } from "@src/lib/types/campaign";
-import type { SubmissionWithStage } from "@src/lib/types/submission";
+import type { Submission } from "@src/lib/types/submission";
 import { api } from "@src/lib/utils/api";
 import type { DndEvent } from "svelte-dnd-action";
 import { toast } from "svelte-sonner";
@@ -8,8 +8,8 @@ export class KanbanState {
   columns = $state<CampaignStage[]>([]);
   private campaignId: string;
   open = $state(false);
-  private getSubmissions: () => SubmissionWithStage[];
-  private onSubmissionsUpdate: (newItems: SubmissionWithStage[]) => void;
+  private getSubmissions: () => Submission[];
+  private onSubmissionsUpdate: (newItems: Submission[]) => void;
   isDeletePopupOpen = $state(false);
   stageToDelete = $state<string | null>(null);
   targetStageId = $state<string | null>(null);
@@ -18,8 +18,8 @@ export class KanbanState {
   );
   constructor(initialData: {
     columns: CampaignStage[];
-    getSubmissions: () => SubmissionWithStage[];
-    onSubmissionsUpdate: (items: SubmissionWithStage[]) => void;
+    getSubmissions: () => Submission[];
+    onSubmissionsUpdate: (items: Submission[]) => void;
     campaignId: string;
   }) {
     this.columns = initialData.columns ?? [];
@@ -79,7 +79,7 @@ export class KanbanState {
   };
 
   private updateSubmissionLocal = (
-    newColumnsItem: SubmissionWithStage[],
+    newColumnsItem: Submission[],
     columnId: string,
   ) => {
     const otherSubmissions = this.getSubmissions().filter(
@@ -90,10 +90,7 @@ export class KanbanState {
   };
 
   dragSourceColumnId = $state<string | null>(null);
-  onConsider = (
-    columnId: string,
-    e: CustomEvent<DndEvent<SubmissionWithStage>>,
-  ) => {
+  onConsider = (columnId: string, e: CustomEvent<DndEvent<Submission>>) => {
     const { items, info } = e.detail;
     if (!this.dragSourceColumnId) {
       const movedItem = this.getSubmissions().find((s) => s.id === info.id);
@@ -106,7 +103,7 @@ export class KanbanState {
 
   onFinalize = async (
     columnId: string,
-    e: CustomEvent<DndEvent<SubmissionWithStage>>,
+    e: CustomEvent<DndEvent<Submission>>,
   ) => {
     const { items, info } = e.detail;
     items.forEach((item) => {
