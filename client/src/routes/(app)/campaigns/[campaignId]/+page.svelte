@@ -12,6 +12,7 @@
     Table,
     Plus,
     Settings,
+    Funnel,
   } from "lucide-svelte";
   import Label from "@src/lib/components/ui/label/label.svelte";
   import ComparisonModal from "@src/routes/(app)/campaigns/[campaignId]/components/ComparisonModal.svelte";
@@ -22,7 +23,7 @@
   import X from "@lucide/svelte/icons/x";
   import Check from "@lucide/svelte/icons/check";
   import SubmissionKanban from "@src/routes/(app)/campaigns/[campaignId]/components/SubmissionKanban.svelte";
-
+  import * as Popover from "$lib/components/ui/popover/index.js";
   import {
     CampaignDetailState,
     setCampaignState,
@@ -148,12 +149,99 @@
   <div class="flex items-center justify-between py-2">
     <div class="relative w-72">
       <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+
       <Input
-        bind:value={states.submissions.search}
+        bind:value={states.submissions.search.params}
         type="search"
         placeholder="Tìm kiếm ứng viên..."
-        class="pl-9 h-9 border border-base-border-1 bg-base-3 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+        class="h-9 w-full rounded-md border border-base-border-1 bg-base-3 pl-9 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
+
+      <Popover.Root>
+        <Popover.Trigger
+          class="absolute right-2 top-1.5 flex h-6 w-6 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-base-4"
+        >
+          <Funnel class="h-4 w-4 cursor-pointer" />
+        </Popover.Trigger>
+
+        <Popover.Content
+          class="z-50 w-80 rounded-md border border-base-border-1 bg-base-2 p-4 shadow-md outline-none"
+          side="bottom"
+          align="end"
+          sideOffset={10}
+        >
+          <div class="grid gap-4">
+            <div class="space-y-2">
+              <h4 class="font-medium leading-none text-base-fg-1">
+                Bộ lọc nâng cao
+              </h4>
+              <p class="text-xs text-base-fg-3">
+                Tùy chỉnh khoảng điểm và thời gian nộp bài.
+              </p>
+            </div>
+
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <Label
+                  for="score"
+                  class="text-[11px] uppercase text-muted-foreground"
+                  >Điểm số</Label
+                >
+                <div class="flex items-center gap-2">
+                  <Input
+                    id="score"
+                    type="number"
+                    placeholder="Từ"
+                    bind:value={states.submissions.tempFilter.minScore}
+                    class="h-8 text-xs bg-base-3"
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Đến"
+                    bind:value={states.submissions.tempFilter.maxScore}
+                    class="h-8 text-xs bg-base-3"
+                  />
+                </div>
+              </div>
+
+              <div class="grid gap-2">
+                <Label class="text-[11px] uppercase text-muted-foreground"
+                  >Thời gian nộp</Label
+                >
+                <div class="grid gap-1">
+                  <Label>Từ</Label>
+                  <Input
+                    type="date"
+                    bind:value={states.submissions.tempFilter.from}
+                    class="h-8 text-xs flex justify-between bg-base-3"
+                  />
+                  <Label>Đến</Label>
+
+                  <Input
+                    type="date"
+                    class="h-8 text-xs bg-base-3"
+                    bind:value={states.submissions.tempFilter.to}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                class="h-8 px-2 text-xs"
+                onclick={() => states.submissions.resetFilter()}>Xóa lọc</Button
+              >
+              <Button
+                size="sm"
+                class="h-8 px-4 text-xs bg-primary-1 text-primary-fg-1"
+                onclick={() => states.submissions.applyFilter()}>Áp dụng</Button
+              >
+            </div>
+          </div>
+        </Popover.Content>
+      </Popover.Root>
     </div>
     <div class="flex gap-2">
       {#if states.viewMode === "kanban"}
