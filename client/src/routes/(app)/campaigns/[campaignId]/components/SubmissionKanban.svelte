@@ -4,21 +4,17 @@
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import Button from "@src/lib/components/ui/button/button.svelte";
 
-  import type { SubmissionWithStage } from "@src/lib/types/submission";
   import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
 
   import EmailPopup from "@src/lib/components/EmailPopup.svelte";
   import KanbanColumn from "@src/routes/(app)/campaigns/[campaignId]/components/KanbanColumn.svelte";
+  import type { Submission } from "@src/lib/types/submission";
   const flipDurationMs = 200;
   const globalState = useCampaignState();
-  const onConsider = (
-    colId: string,
-    e: CustomEvent<DndEvent<SubmissionWithStage>>,
-  ) => globalState.kanban.onConsider(colId, e);
-  const onFinalize = (
-    colId: string,
-    e: CustomEvent<DndEvent<SubmissionWithStage>>,
-  ) => globalState.kanban.onFinalize(colId, e);
+  const onConsider = (colId: string, e: CustomEvent<DndEvent<Submission>>) =>
+    globalState.kanban.onConsider(colId, e);
+  const onFinalize = (colId: string, e: CustomEvent<DndEvent<Submission>>) =>
+    globalState.kanban.onFinalize(colId, e);
   const selectedSubmission = globalState.submissions.selectedSubmission;
   const campaignId = globalState.campaignId;
 </script>
