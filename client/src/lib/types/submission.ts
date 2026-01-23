@@ -38,14 +38,8 @@ export interface Submission {
   summary: string;
   deletedAt: string;
   campaignName: string;
-}
-
-export interface SubmissionWithStage extends Submission {
   stageId: string;
   starred: boolean;
-}
-
-export interface SubmissionDetail extends Submission {
   snapshotSchema: FormQuestion[];
   cvUrl: string;
 }
