@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.insight_pulse.tech.automation.dto.AutomationSummary;
@@ -35,15 +34,18 @@ import com.insight_pulse.tech.campaign.service.CampaignSettingsService;
 import com.insight_pulse.tech.submission.dto.DeleteStageRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
+import com.insight_pulse.tech.submission.dto.SubmissionFilter;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
 import com.insight_pulse.tech.submission.service.SubmissionService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/campaigns")
+@Slf4j
 public class CampaignController {
 
     
@@ -96,8 +98,8 @@ public class CampaignController {
     // --- Submission in campaign ---
 
     @GetMapping("/{campaignId}/submissions")
-    public ResponseEntity<CampaignWithSubmissionsResponse> findSubmissionsByCampaign(@PathVariable String campaignId, @RequestParam(required=false) String search, Pageable pageable) {
-        return ResponseEntity.ok(submissionService.findSubmissionByCampaign(campaignId, search, pageable));
+    public ResponseEntity<CampaignWithSubmissionsResponse> findSubmissionsByCampaign(@PathVariable String campaignId, SubmissionFilter filter, Pageable pageable) {
+        return ResponseEntity.ok(submissionService.findSubmissionByCampaign(campaignId, filter, pageable));
     }
 
     @GetMapping("/{campaignId}/submissions/{submissionId}")
@@ -137,6 +139,7 @@ public class CampaignController {
         @PathVariable String campaignId, 
         @RequestBody CampaignSettingRequest request
     ) {
+        log.info("Request: {}", request);
         campaignSettingsService.saveAllSettings(campaignId, request);
         return ResponseEntity.ok().build();
     }
