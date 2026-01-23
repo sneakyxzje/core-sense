@@ -1,8 +1,8 @@
 import type { FormQuestion } from "@src/lib/types/FormQuestion";
 
 export const getMappedAnswers = (
-  answer: Record<string, any>,
-  formSchema?: FormQuestion[]
+  answer: Record<string, any> | undefined,
+  formSchema?: FormQuestion[],
 ) => {
   if (!answer) return [];
   if (formSchema && formSchema.length > 0) {
