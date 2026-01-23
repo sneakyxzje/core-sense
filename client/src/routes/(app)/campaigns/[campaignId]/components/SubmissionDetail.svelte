@@ -11,6 +11,16 @@
   import { Calendar, SquarePen } from "lucide-svelte";
 
   const detailState = useCampaignState();
+
+  const submissions = $derived(
+    getMappedAnswers(
+      detailState.submissions.selectedSubmission?.answer,
+      detailState.campaign?.formSchema,
+    ),
+  );
+  const filterItems = $derived(
+    submissions?.filter((item) => item.type !== "files" && item.id !== "files"),
+  );
 </script>
 
 <Sheet.Root bind:open={detailState.submissions.isSheetOpen}>
@@ -120,7 +130,7 @@
             </div>
 
             <div class="space-y-6">
-              {#each getMappedAnswers(detailState.submissions.selectedSubmission.answer, detailState.campaign?.formSchema) as item, i}
+              {#each filterItems as item, i}
                 <div
                   class="relative pl-6 border-l-2 border-base-border-2 hover:border-base-border-hover transition-colors"
                 >
@@ -136,6 +146,7 @@
                     >
                       {item.label}
                     </span>
+
                     <div
                       class="text-sm text-primary-900 leading-relaxed bg-background p-4 rounded-xl border border-base-border-2 whitespace-pre-wrap"
                     >
@@ -144,13 +155,46 @@
                   </div>
                 </div>
               {/each}
+              {#if detailState.submissions.selectedSubmission.cvUrl}
+                <div class="space-y-2 mb-6">
+                  <p
+                    class="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Resume
+                  </p>
+                  <div
+                    class="flex items-center justify-between p-4 rounded-xl bg-base-3 border border-base-border-1 group"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div>
+                        <p class="text-sm font-semibold">
+                          Resume của ứng viên: {detailState.submissions
+                            .selectedSubmission.fullName || "null"}
+                        </p>
+                        <p class="text-xs text-muted-foreground uppercase">
+                          .PDF
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      href={detailState.submissions.selectedSubmission.cvUrl}
+                      target="_blank"
+                      class="bg-primary-1 hover:bg-primary-hover text-base-1  transition-all"
+                    >
+                      Mở CV
+                    </Button>
+                  </div>
+                </div>
+              {/if}
             </div>
           </div>
         </div>
       </div>
 
       <div
-        class="absolute bottom-0 left-0 right-0 p-5 bg-background backdrop-blur-md border-t border-base-border-2 flex justify-end gap-3 z-30 shadow-[0_-10px_20px_rgba(0,0,0,0,0.02)]"
+        class="absolute bottom-0 left-0 right-0 p-5 bg-base-3 backdrop-blur-md border-t border-base-border-2 flex justify-end gap-3 z-30 shadow-[0_-10px_20px_rgba(0,0,0,0,0.02)]"
       >
         <Button
           variant="ghost"
