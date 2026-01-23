@@ -13,7 +13,6 @@
     isEmailOpen?: boolean;
     selectedSubmission: Submission | undefined;
   } = $props();
-  console.log(selectedSubmission);
   let emailTemplate = $state<Template[]>();
   let emailData = $state<EmailInteface>({
     to: "",
