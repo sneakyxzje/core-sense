@@ -6,13 +6,12 @@
     getRespondentName,
   } from "@src/lib/utils/formMapper";
   import Badge from "@src/lib/components/ui/badge/badge.svelte";
-  import type { GeminiComparisonResponse } from "@src/lib/types/Gemini";
-  import { api } from "@src/lib/utils/api";
-  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/page.svelte";
-  const comparisonState = useCampaignState();
+
+  import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
+  const globalState = useCampaignState();
 </script>
 
-{#if comparisonState.isComparisonOpen}
+{#if globalState.submissions.isComparisonOpen}
   <div
     class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
   >
@@ -20,7 +19,7 @@
       class="bg-base-2 border border-base-border-1 shadow-2xl rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col relative"
     >
       <button
-        onclick={() => (comparisonState.isComparisonOpen = false)}
+        onclick={() => (globalState.submissions.isComparisonOpen = false)}
         class="cursor-pointer absolute right-4 top-4 p-2 hover:bg-muted rounded-full transition-colors z-20"
       >
         <X class="w-5 h-5" />
@@ -41,8 +40,8 @@
             VS
           </div>
 
-          {#if comparisonState.stateComparison}
-            {#each comparisonState.stateComparison as s, id}
+          {#if globalState.submissions.stateComparison}
+            {#each globalState.submissions.stateComparison as s, id}
               <div
                 class="flex flex-col h-full space-y-4 border border-base-border-1 rounded-lg p-6 bg-card shadow-sm hover:border-primary/50 transition-colors"
               >
@@ -57,7 +56,7 @@
                     <h3 class="font-bold text-xl text-foreground">
                       {getRespondentName(
                         s.answer,
-                        comparisonState.campaign?.formSchema
+                        globalState.campaign?.formSchema,
                       )}
                     </h3>
                   </div>
@@ -76,7 +75,7 @@
                     Chi tiết câu trả lời
                   </h4>
                   <div class="grid gap-4">
-                    {#each getMappedAnswers(s.answer, comparisonState.campaign?.formSchema) as item}
+                    {#each getMappedAnswers(s.answer, globalState.campaign?.formSchema) as item}
                       <div
                         class="group border-l border-base-border-1 border-muted hover:border-primary pl-3 py-1 transition-all"
                       >
@@ -116,14 +115,14 @@
 
         <div class="mt-12 flex flex-col items-center space-y-4">
           <Button
-            disabled={comparisonState.isProcessing}
+            disabled={globalState.submissions.isProcessing}
             onclick={() =>
-              comparisonState.onComparisonSubmit(
-                comparisonState.stateComparison
+              globalState.submissions.onComparisonSubmit(
+                globalState.submissions.stateComparison,
               )}
             class="px-10 py-7 text-lg font-bold bg-primary-1 text-primary-fg-1 hover:bg-primary-hover rounded-xl transition-all gap-3"
           >
-            {comparisonState.isProcessing
+            {globalState.submissions.isProcessing
               ? "Đang phân tích..."
               : "Bắt đầu so sánh bằng AI"}
           </Button>
@@ -138,29 +137,29 @@
                 </h3>
               </div>
 
-              {#if comparisonState.comparisonResult}
+              {#if globalState.submissions.comparisonResult}
                 <Badge
                   variant="outline"
                   class="font-bold border-primary/50 text-primary"
                 >
-                  Đánh giá: {comparisonState.comparisonResult.score}
+                  Đánh giá: {globalState.submissions.comparisonResult.score}
                 </Badge>
               {/if}
             </div>
 
             <div class="space-y-6">
-              {#if comparisonState.comparisonResult}
+              {#if globalState.submissions.comparisonResult}
                 <div
                   class="prose prose-blue max-w-none bg-base-2 text-foreground/80 leading-relaxed p-6 rounded-2xl border border-base-border-1"
                 >
                   <p
                     class="text-sm font-medium text-base-fg-1 whitespace-pre-line"
                   >
-                    {comparisonState.comparisonResult.aiAssesment}
+                    {globalState.submissions.comparisonResult.aiAssesment}
                   </p>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {#each comparisonState.comparisonResult.highlights as highlight}
+                    {#each globalState.submissions.comparisonResult.highlights as highlight}
                       <div
                         class="flex flex-col gap-1.5 p-3 rounded-xl border border-base-border-1 transition-all hover:shadow-sm"
                       >
@@ -206,7 +205,7 @@
       <div class="p-4 border-t bg-muted/20 flex justify-end gap-3 px-8">
         <Button
           variant="ghost"
-          onclick={() => (comparisonState.isComparisonOpen = false)}
+          onclick={() => (globalState.submissions.isComparisonOpen = false)}
           >Hủy bỏ</Button
         >
         <Button variant="default" class="gap-2">
