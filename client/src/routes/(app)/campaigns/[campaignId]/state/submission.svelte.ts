@@ -1,16 +1,37 @@
 import { useDebounce } from "@src/lib/hooks/useDebounce.svelte";
 import type { CampaignWithSubmission } from "@src/lib/types/campaign";
 import type { GeminiComparisonResponse } from "@src/lib/types/Gemini";
-import type {
-  Submission,
-  SubmissionWithStage,
-} from "@src/lib/types/submission";
+import type { Submission } from "@src/lib/types/submission";
 import { api } from "@src/lib/utils/api";
 import { toast } from "svelte-sonner";
 
+interface Search {
+  params: string;
+  filter: {
+    minScore: number | null;
+    maxScore: number | null;
+    from: string | null;
+    to: string | null;
+  };
+}
 export class SubmissionState {
-  items = $state<SubmissionWithStage[]>([]);
-  search = $state("");
+  items = $state<Submission[]>([]);
+  search = $state<Search>({
+    params: "",
+    filter: {
+      minScore: null,
+      maxScore: null,
+      from: null,
+      to: null,
+    },
+  });
+
+  tempFilter = $state({
+    minScore: null,
+    maxScore: null,
+    from: null,
+    to: null,
+  });
   currentPage = $state(0);
   pageSize = 10;
   totalPages = $state(0);
@@ -20,13 +41,13 @@ export class SubmissionState {
   debouncedSearch = useDebounce(() => this.search, 500);
   private isInitialized = false;
   private campaignId: string;
-  constructor(initialItems: SubmissionWithStage[], campaignId: string) {
+  constructor(initialItems: Submission[], campaignId: string) {
     this.items = initialItems;
     this.campaignId = campaignId;
     $effect(() => {
       const query = this.debouncedSearch.current;
       if (query !== undefined) {
-        if (!this.isInitialized && query === "") {
+        if (!this.isInitialized && query.params === "") {
           this.isInitialized = true;
           return;
         }
@@ -37,11 +58,28 @@ export class SubmissionState {
     });
   }
 
-  fetchSubmissions = async (page: number, query: string) => {
+  fetchSubmissions = async (page: number, query: Search) => {
     try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: this.pageSize.toString(),
+        search: query.params,
+        sort: "submittedAt,desc",
+      });
+      if (query.filter.minScore !== null)
+        params.append("minScore", query.filter.minScore.toString());
+      if (query.filter.maxScore !== null)
+        params.append("maxScore", query.filter.maxScore.toString());
+      if (query.filter.from) {
+        params.append("from", `${query.filter.from}T00:00:00`);
+      }
+      if (query.filter.to) {
+        params.append("to", `${query.filter.to}T23:59:59`);
+      }
       const res = await api.get<CampaignWithSubmission>(
-        `/campaigns/${this.campaignId}/submissions?page=${page}&size=${this.pageSize}&search=${query}&sort=submittedAt,desc`,
+        `/campaigns/${this.campaignId}/submissions?${params.toString()}`,
       );
+
       this.items = res.submissions.content;
       this.totalPages = res.submissions.totalPages;
       this.totalElements = res.submissions.totalElements;
@@ -193,5 +231,14 @@ export class SubmissionState {
     } finally {
       this.interviewLoading = false;
     }
+  };
+
+  applyFilter = () => {
+    this.search.filter = $state.snapshot(this.tempFilter);
+  };
+
+  resetFilter = () => {
+    this.tempFilter = { minScore: null, maxScore: null, from: null, to: null };
+    this.applyFilter();
   };
 }
