@@ -15,5 +15,6 @@ public record SubmissionResponse(
     String stageId,
     LocalDateTime deletedAt,
     String campaignName,
-    boolean starred
+    boolean starred,
+    String cvUrl
 ) {}
