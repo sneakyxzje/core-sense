@@ -1,5 +1,5 @@
 import type { FormQuestion } from "@src/lib/types/FormQuestion";
-import type { SubmissionWithStage } from "@src/lib/types/submission";
+import type { Submission } from "@src/lib/types/submission";
 
 export interface Campaign {
   id: string;
@@ -39,7 +39,7 @@ export interface CampaignDetail {
 
 export interface CampaignWithSubmission {
   campaign: CampaignDetail;
-  submissions: PageResponse<SubmissionWithStage>;
+  submissions: PageResponse<Submission>;
 }
 
 export interface CampaignPublic {
