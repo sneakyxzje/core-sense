@@ -17,7 +17,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
 
     Optional<Campaign> findByIdAndUserId(String id, int userId);
 
-    @Modifying 
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Campaign c SET c.totalSubmissions = c.totalSubmissions + 1 WHERE c.id = :id")
     void incrementTotalSubmissions(@Param("id") String id);
 
