@@ -22,7 +22,8 @@ public class SubmissionMapper {
             s.getCurrentStage() != null ? s.getCurrentStage().getId() : null,
             s.getDeletedAt(),
             s.getCampaign().getName(),
-            s.isStarred()
+            s.isStarred(),
+            s.getCvUrl()
         );
     }
 
