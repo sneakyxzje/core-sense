@@ -16,10 +16,7 @@
   import KanbanCard from "@src/routes/(app)/campaigns/[campaignId]/components/KanbanCard.svelte";
   import type { CampaignStage } from "@src/lib/types/campaign";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
-  import type {
-    Submission,
-    SubmissionWithStage,
-  } from "@src/lib/types/submission";
+  import type { Submission } from "@src/lib/types/submission";
   import { flip } from "svelte/animate";
   import { goto } from "$app/navigation";
 
@@ -37,15 +34,9 @@
   }: {
     column: CampaignStage;
     flipDurationMs: number;
-    onConsider: (
-      colId: string,
-      e: CustomEvent<DndEvent<SubmissionWithStage>>,
-    ) => void;
-    onFinalize: (
-      colId: string,
-      e: CustomEvent<DndEvent<SubmissionWithStage>>,
-    ) => void;
-    items: SubmissionWithStage[];
+    onConsider: (colId: string, e: CustomEvent<DndEvent<Submission>>) => void;
+    onFinalize: (colId: string, e: CustomEvent<DndEvent<Submission>>) => void;
+    items: Submission[];
     onShowEmail: (s: Submission) => void;
     onDelete: (s: string) => void;
     onArchive: (s: string) => void;
@@ -72,14 +63,14 @@
     onStarred(s);
   };
 
-  const handleConsider = (e: CustomEvent<DndEvent<SubmissionWithStage>>) => {
+  const handleConsider = (e: CustomEvent<DndEvent<Submission>>) => {
     isDraggingInternal = true;
     const { items } = e.detail;
     internalItems = items;
     onConsider(column.id, e);
   };
 
-  const handleFinalize = (e: CustomEvent<DndEvent<SubmissionWithStage>>) => {
+  const handleFinalize = (e: CustomEvent<DndEvent<Submission>>) => {
     const { items } = e.detail;
     internalItems = items;
     onFinalize(column.id, e);
