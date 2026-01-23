@@ -4,7 +4,7 @@ import type {
   CampaignSetting,
   CampaignStage,
 } from "@src/lib/types/campaign";
-import type { SubmissionWithStage } from "@src/lib/types/submission";
+import type { Submission } from "@src/lib/types/submission";
 import { api } from "@src/lib/utils/api";
 import { KanbanState } from "@src/routes/(app)/campaigns/[campaignId]/state/kanban.svelte";
 import { SubmissionState } from "@src/routes/(app)/campaigns/[campaignId]/state/submission.svelte";
@@ -31,7 +31,7 @@ export class CampaignDetailState {
   activeTab = $state("general");
   constructor(initialData: {
     columns: CampaignStage[];
-    submissions: SubmissionWithStage[];
+    submissions: Submission[];
     campaign: CampaignDetail;
     user: any;
   }) {
