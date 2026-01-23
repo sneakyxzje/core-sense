@@ -13,7 +13,6 @@ const BASE_URL = rawBaseUrl
   ? rawBaseUrl.trim().replace(/(\r\n|\n|\r)/gm, "")
   : "";
 export const handle = async ({ event, resolve }) => {
-  const cookieHeader = event.request.headers.get("cookie");
   const originalFetch = event.fetch;
   event.fetch = async (input, init) => {
     const url = input.toString();
@@ -36,9 +35,7 @@ export const handle = async ({ event, resolve }) => {
   const cookie = event.request.headers.get("cookie") || "";
   const jwt = event.cookies.get("jwt");
   const refreshToken = event.cookies.get("refresh_token");
-  console.log("Cookie: ", cookie);
-  console.log("JWT: ", jwt);
-  console.log("Refresh Token ", refreshToken);
+
   if (jwt) {
     try {
       const user = await getMe(event.fetch);
