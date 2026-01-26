@@ -227,6 +227,7 @@ export class SubmissionState {
       toast.success("Đặt lịch phỏng vấn thành công!");
       this.isInterviewOpen = false;
     } catch (error) {
+      toast.error("Đặt lịch phỏng vấn thất bại!");
       console.error(error);
     } finally {
       this.interviewLoading = false;
