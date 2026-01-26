@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.insight_pulse.tech.exception.except.InvalidEmailException;
 import com.insight_pulse.tech.quotas.exception.QuotaExceededException;
 
 @RestControllerAdvice
@@ -20,5 +21,14 @@ public class GlobalExceptionHandler {
         body.put("error", "QUOTA_EXCEEDED"); 
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidEmail(InvalidEmailException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", ex.getCode());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }
