@@ -12,9 +12,9 @@
     ChevronsUpDown,
     Bell,
     Users,
-    LayoutPanelLeft,
     Trash,
     Trash2,
+    Calendar,
   } from "lucide-svelte";
   import { AuthState } from "@src/routes/(auth)/page.svelte";
   import { goto } from "$app/navigation";
@@ -33,6 +33,7 @@
       items: [
         { title: "Chiến dịch", url: "/campaigns", icon: FileText },
         { title: "Ứng viên", url: "/candidates", icon: Users },
+        { title: "Phỏng vấn", url: "/interviews", icon: Calendar },
       ],
     },
     {
@@ -71,7 +72,10 @@
           <Sidebar.Menu>
             {#each group.items as item (item.url)}
               <Sidebar.MenuItem>
-                <Sidebar.MenuButton isActive={page.url.pathname === item.url}>
+                <Sidebar.MenuButton
+                  class="hover:bg-base-4"
+                  isActive={page.url.pathname === item.url}
+                >
                   {#snippet child({ props })}
                     <a href={item.url} {...props}>
                       <item.icon />
