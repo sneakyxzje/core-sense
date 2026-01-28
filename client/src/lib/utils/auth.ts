@@ -25,6 +25,5 @@ export function syncAuthCookie(response: Response, event: RequestEvent) {
         ? parseInt(parsed["max-age"])
         : 60 * 60 * 24 * 7,
     });
-    event.request.headers.append("cookie", `${name}=${value}`);
   });
 }
