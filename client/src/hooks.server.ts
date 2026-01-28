@@ -1,30 +1,40 @@
-import { browser } from "$app/environment";
-import { env } from "$env/dynamic/public";
-
 import { getMe } from "@src/lib/api/user";
+import { getBaseUrl } from "@src/lib/config/_api";
 import { syncAuthCookie } from "@src/lib/utils/auth";
 import { redirect } from "@sveltejs/kit";
-const rawBaseUrl = browser
-  ? env.PUBLIC_API_URL
-  : env.PUBLIC_INTERNAL_API_URL ||
-    env.PUBLIC_API_URL ||
-    "http://backend:8080/api";
-const BASE_URL = rawBaseUrl
-  ? rawBaseUrl.trim().replace(/(\r\n|\n|\r)/gm, "")
-  : "";
+
+interface AppError {
+  status: number;
+  message: string;
+}
+
+const isAppError = (error: unknown): error is AppError => {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof (error as any).status === "number"
+  );
+};
 export const handle = async ({ event, resolve }) => {
   const originalFetch = event.fetch;
+  const APP_ROUTE = "(app)";
+
   event.fetch = async (input, init) => {
     const url = input.toString();
     if (
-      url.startsWith(BASE_URL) ||
+      url.startsWith(getBaseUrl()) ||
       url.includes("backend:8080") ||
       url.includes("localhost:8080")
     ) {
       const options = { ...init };
       const headers = new Headers(options.headers);
-      if (!headers.has("cookie") && cookie) {
-        headers.set("cookie", cookie);
+      const currentCookie = event.cookies
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
+      if (!headers.has("cookie") && currentCookie) {
+        headers.set("cookie", currentCookie);
       }
       options.headers = headers;
       return originalFetch(input, options);
@@ -32,24 +42,27 @@ export const handle = async ({ event, resolve }) => {
 
     return originalFetch(input, init);
   };
-  const cookie = event.request.headers.get("cookie") || "";
   const jwt = event.cookies.get("jwt");
   const refreshToken = event.cookies.get("refresh_token");
 
   if (jwt) {
     try {
       const user = await getMe(event.fetch);
-      console.log(user);
       event.locals.user = user;
-    } catch (error: any) {
-      if ((error.status === 401 || error.status === 403) && refreshToken) {
-        await tryToRefresh(event);
+    } catch (error: unknown) {
+      if (isAppError(error)) {
+        const { status } = error;
+        if ((status === 401 || status === 403) && refreshToken) {
+          await tryToRefresh(event);
+        }
+      } else {
+        console.error("Unexpected error:", error);
       }
     }
   } else if (refreshToken) {
     await tryToRefresh(event);
   }
-  const isAppRoute = event.route.id?.includes("(app)");
+  const isAppRoute = event.route.id?.includes(APP_ROUTE);
 
   if (isAppRoute && !event.locals.user) {
     throw redirect(303, "/login");
@@ -67,13 +80,9 @@ export const handle = async ({ event, resolve }) => {
 };
 
 async function tryToRefresh(event: any) {
-  const cookie = event.request.headers.get("cookie") || "";
   try {
-    const refreshRes = await event.fetch(`${BASE_URL}/auth/refresh`, {
+    const refreshRes = await event.fetch(`${getBaseUrl()}/auth/refresh`, {
       method: "POST",
-      headers: {
-        cookie: cookie,
-      },
     });
 
     if (refreshRes.ok) {
