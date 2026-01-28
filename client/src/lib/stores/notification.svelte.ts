@@ -40,7 +40,7 @@ export const notificationStore = {
   },
 
   async markAsRead(id: number) {
-    const backupList = { ...list };
+    const backupList = [...list];
     list = list.map((n) => (n.id === id ? { ...n, isRead: true } : n));
 
     unreadCount = list.filter((n) => !n.isRead).length;
