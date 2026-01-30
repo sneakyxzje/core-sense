@@ -1,5 +1,5 @@
 import { browser } from "$app/environment";
-import { env } from "node:process";
+import { env } from "$env/dynamic/public";
 
 export const getBaseUrl = () => {
   const rawBaseUrl = browser
