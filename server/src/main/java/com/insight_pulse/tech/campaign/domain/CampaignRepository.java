@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.insight_pulse.tech.campaign.domain.interfaces.MonthlyGrowth;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 public interface CampaignRepository extends JpaRepository<Campaign, String> {
     
@@ -17,7 +18,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
 
     Optional<Campaign> findByIdAndUserId(String id, int userId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true)
     @Query("UPDATE Campaign c SET c.totalSubmissions = c.totalSubmissions + 1 WHERE c.id = :id")
     void incrementTotalSubmissions(@Param("id") String id);
 
@@ -61,5 +62,14 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
                 d.date ASC;
             """, nativeQuery = true)
     List<SubmissionChart> getSubmissionChartData(@Param("userId") int userId);
-    
+        
+    @Query(value = """
+            SELECT COUNT(CASE WHEN s.submitted_at >= DATE_TRUNC('month', CURRENT_DATE) THEN 1 END) AS currentMonth, 
+            COUNT(CASE WHEN s.submitted_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') AND s.submitted_at < (CURRENT_DATE - INTERVAL '1 month' + INTERVAL '1 day') THEN 1 END) as lastMonth
+            FROM submissions s
+            JOIN campaigns c ON s.campaigns_id = c.id
+            WHERE c.owner_id = :userId
+            AND s.is_deleted = false AND s.deleted_at IS NULL
+            """, nativeQuery = true)
+    MonthlyGrowth countSubmissionGrowth(@Param("userId") int userid);
 }
