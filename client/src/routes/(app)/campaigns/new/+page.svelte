@@ -31,7 +31,6 @@
 
   const handleSubmit = () => {
     mutation.mutate(formData);
-    console.log(formData);
   };
 
   let viewMode = $state("builder");
@@ -47,9 +46,7 @@
       <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
         <section class="space-y-6">
           <div class="flex items-center gap-2">
-            <h3
-              class="text-xs font-black uppercase tracking-[0.15em] text-muted-foreground"
-            >
+            <h3 class="text-xs font-bold uppercase text-base-fg-1">
               Tạo chiến dịch mới
             </h3>
           </div>
@@ -132,7 +129,7 @@
         <div class="flex items-center justify-between mb-8">
           <div class="space-y-1">
             <h3
-              class="text-lg font-bold flex items-center gap-2 tracking-tight"
+              class="text-lg font-bold text-base-fg-1 flex items-center gap-2 tracking-tight"
             >
               {#if viewMode === "builder"}
                 <ListChecks class="w-5 h-5 text-primary" />
@@ -283,6 +280,13 @@
                             >
                               <option>Chọn một tùy chọn...</option>
                             </select>
+                          {:else if question.type === "email"}
+                            <Input
+                              type="email"
+                              class="w-full px-3 py-2 border border-base-border-1 text-base-fg-1 rounded-lg  bg-base-2 focus:ring-2 ring-primary/20 outline-none transition-all"
+                              placeholder="Nhập câu trả lời..."
+                              disabled
+                            />
                           {:else}
                             <div
                               class="p-3 bg-slate-50 rounded border border-dashed text-xs text-muted-foreground"
