@@ -14,6 +14,7 @@ import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
 import com.insight_pulse.tech.campaign.domain.CampaignStageRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStatus;
+import com.insight_pulse.tech.campaign.domain.interfaces.MonthlyGrowth;
 import com.insight_pulse.tech.campaign.dto.CampaignDetailResponse;
 import com.insight_pulse.tech.campaign.dto.CampaignRequest;
 import com.insight_pulse.tech.campaign.dto.CampaignResponse;
@@ -23,7 +24,7 @@ import com.insight_pulse.tech.campaign.dto.stage.CreateStageRequest;
 import com.insight_pulse.tech.campaign.dto.stage.StageResponse;
 import com.insight_pulse.tech.campaign.dto.stage.UpdateStageNameRequest;
 import com.insight_pulse.tech.campaign.mapper.CampaignMapper;
-import com.insight_pulse.tech.exception.ResourceNotFoundException;
+import com.insight_pulse.tech.exception.except.ResourceNotFoundException;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 
 import com.insight_pulse.tech.user.domain.User;
@@ -87,13 +88,25 @@ public class CampaignService {
     }
 
     public CampaignStats getCampaignInfo() {
+
         int userId = currentUserProvider.getCurrentUserId();
         Double ratio = campaignRepository.calculateHightQualityRatio(userId);
+        MonthlyGrowth data = campaignRepository.countSubmissionGrowth(userId);
+        int currentMonth = data.getCurrentMonth(); 
+        int lastMonth = data.getLastMonth(); 
+        int diff = currentMonth - lastMonth;
+        double differencePercent = 0.0;
+        if(lastMonth > 0) {
+            differencePercent = ( (double) diff / lastMonth) * 100;
+        } else if(currentMonth > 0) {
+            differencePercent = 100.0;
+        }
         return new CampaignStats(
-            campaignRepository.getSumSubmissionByUserId(userId),
+            currentMonth,
+            differencePercent,
             campaignRepository.countByUserIdAndStatus(userId, CampaignStatus.ACTIVE),
             ratio != null ? ratio : 0.0
-        );
+        ); 
     }
     public Page<CampaignResponse> getCampaigns(Pageable pageable) {
         int userId = currentUserProvider.getCurrentUserId();
