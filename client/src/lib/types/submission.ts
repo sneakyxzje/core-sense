@@ -3,7 +3,8 @@ import type { FormQuestion } from "@src/lib/types/FormQuestion";
 export type TotalSubmissions = {
   campaignId: string;
   campaignName: string;
-  totalSubmissions: number;
+  submissionThisMonth: number;
+  differencePercent: number;
   activeCampaigns: number;
   highQualityRatio: number;
 };
