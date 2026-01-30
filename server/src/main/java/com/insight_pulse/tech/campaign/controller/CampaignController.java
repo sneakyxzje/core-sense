@@ -32,10 +32,12 @@ import com.insight_pulse.tech.campaign.dto.submission.CampaignWithSubmissionsRes
 import com.insight_pulse.tech.campaign.service.CampaignService;
 import com.insight_pulse.tech.campaign.service.CampaignSettingsService;
 import com.insight_pulse.tech.submission.dto.DeleteStageRequest;
+import com.insight_pulse.tech.submission.dto.SubmissionBulkRequest;
 import com.insight_pulse.tech.submission.dto.SubmissionChart;
 import com.insight_pulse.tech.submission.dto.SubmissionDetailResponse;
 import com.insight_pulse.tech.submission.dto.SubmissionFilter;
 import com.insight_pulse.tech.submission.dto.SubmissionResponse;
+import com.insight_pulse.tech.submission.service.SubmissionBulkService;
 import com.insight_pulse.tech.submission.service.SubmissionService;
 
 import jakarta.validation.Valid;
@@ -52,7 +54,7 @@ public class CampaignController {
     private final CampaignSettingsService campaignSettingsService;
     private final CampaignService campaignService;
     private final SubmissionService submissionService;
-
+    private final SubmissionBulkService submissionBulkService;
     // --- CRUD ---
     @PostMapping
     public ResponseEntity<CampaignResponse> createCampaign(@Valid @RequestBody CampaignRequest request) {
@@ -111,6 +113,18 @@ public class CampaignController {
     @PatchMapping("/{campaignId}/submissions/{submissionId}/stage")
     public ResponseEntity<SubmissionResponse> updateSubmissionStage(@PathVariable String submissionId, @RequestBody UpdateStageColumnRequest request) {
         return ResponseEntity.ok(submissionService.updateStageColumn(submissionId, request));
+    }
+
+    @PostMapping("/{campaignId}/submissions:bulk-move")
+    public ResponseEntity<Void> bulkMoveSubmission(@PathVariable String campaignId, @RequestBody SubmissionBulkRequest request) {
+        submissionBulkService.executeBulkAction(campaignId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{campaignId}/submissions:bulk-archive")
+    public ResponseEntity<Void> bulkArchiveSubmission(@PathVariable String campaignId, @RequestBody SubmissionBulkRequest request) {
+        submissionBulkService.executeBulkAction(campaignId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{campaignId}/stages")
