@@ -15,7 +15,6 @@
     globalState.kanban.onConsider(colId, e);
   const onFinalize = (colId: string, e: CustomEvent<DndEvent<Submission>>) =>
     globalState.kanban.onFinalize(colId, e);
-  const selectedSubmission = globalState.submissions.selectedSubmission;
   const campaignId = globalState.campaignId;
 </script>
 
@@ -34,6 +33,7 @@
       onArchive={(s) => globalState.submissions.handleArchive(s)}
       onDelete={(s) => globalState.kanban.handleDelete(s)}
       onStarred={(s) => globalState.submissions.handleStarred(s)}
+      onShowBulk={() => globalState.kanban.onShowBulk()}
     />
   {/each}
   <Dialog.Root bind:open={globalState.kanban.isDeletePopupOpen}>
