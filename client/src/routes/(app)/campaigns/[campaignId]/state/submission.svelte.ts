@@ -157,7 +157,7 @@ export class SubmissionState {
   };
 
   getSubmissionByColumn = (colId: string) => {
-    return this.items.filter((s) => s.stageId === colId);
+    return this.items.filter((s) => s.stageId === colId && !s.deletedAt);
   };
 
   handleArchive = async (submissionId: string) => {
