@@ -31,6 +31,8 @@
 
   import { page } from "$app/state";
   import Setting from "@src/routes/(app)/campaigns/[campaignId]/components/Setting.svelte";
+  import FloatingToolbar from "@src/lib/components/FloatingToolbar.svelte";
+  import BulkDialog from "@src/lib/components/BulkDialog.svelte";
   const user = page.data.user;
 
   let { data } = $props();
@@ -328,4 +330,6 @@
 
 <SubmissionDetail />
 <ComparisonModal />
+<FloatingToolbar />
+<BulkDialog />
 <Setting {data} />
