@@ -1,3 +1,4 @@
+import { goto } from "$app/navigation";
 import {
   createSocketClient,
   subscribeSubmissions,
@@ -22,9 +23,9 @@ export class DashboardState {
     chart: SubmissionChart[];
     summary: SubmissionSummary[];
   }) {
-    (this.stats = initialData.stats),
+    ((this.stats = initialData.stats),
       (this.chart = initialData.chart ?? []),
-      (this.summary = initialData.summary ?? []);
+      (this.summary = initialData.summary ?? []));
   }
 
   statsCards = $derived([
@@ -32,11 +33,17 @@ export class DashboardState {
       id: "active",
       title: "Chiến dịch đang chạy",
       value: this.stats?.activeCampaigns ?? 0,
+      action: "Chi tiết",
     },
     {
       id: "total",
-      title: "Tổng lượt nộp",
-      value: this.stats?.totalSubmissions ?? 0,
+      title: "Tổng lượt nộp trong tháng này",
+      value: this.stats?.submissionThisMonth ?? 0,
+      subValue:
+        this.stats?.differencePercent !== undefined &&
+        this.stats?.differencePercent >= 0
+          ? this.stats?.differencePercent.toFixed(2)
+          : this.stats?.differencePercent.toFixed(2),
     },
     {
       id: "ratio",
@@ -68,7 +75,7 @@ export class DashboardState {
   }
   private onMessageReceived(payload: SubmissionEvent) {
     if (this.stats) {
-      this.stats.totalSubmissions += 1;
+      this.stats.submissionThisMonth += 1;
     }
     this.updateChart(payload.submittedAt);
 
@@ -88,7 +95,7 @@ export class DashboardState {
     const timePointKey = `${day}/${month}/${year}`;
 
     const existingIndex = this.chart.findIndex(
-      (c) => c.timePoint === timePointKey
+      (c) => c.timePoint === timePointKey,
     );
 
     const newChart = [...this.chart];
