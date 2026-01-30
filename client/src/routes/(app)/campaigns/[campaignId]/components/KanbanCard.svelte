@@ -18,11 +18,19 @@
 
   let { s }: { s: Submission } = $props();
   const state = useCampaignState();
+  const isSelected = $derived(state.kanban.selectedIds.has(s.id));
 </script>
 
 <button
-  class="group relative flex flex-col cursor-pointer w-full text-left bg-base-3 border border-transparent hover:border-base-border-1 rounded-lg p-4 shadow-sm transition-all hover:shadow-md flex-shrink-0"
-  onclick={() => state.submissions.openSummary(s)}
+  class="group relative flex flex-col cursor-pointer w-full text-left rounded-lg p-4 shadow-sm transition-all hover:shadow-md flex-shrink-0
+         {isSelected
+    ? 'bg-primary-1/5 border-primary-1 ring-2 ring-primary-1/20'
+    : 'bg-base-3 border border-transparent hover:border-base-border-1'}"
+  onclick={() => {
+    if (!state.kanban.showBulk) {
+      state.submissions.openSummary(s);
+    }
+  }}
 >
   {#if s.starred}
     <div
@@ -35,10 +43,21 @@
     </div>
   {/if}
 
-  <div
-    class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
-  >
-    <GripVertical class="w-4 h-4 text-muted-foreground" />
+  <div class="absolute right-2 top-2 transition-opacity">
+    {#if state.kanban.showBulk}
+      <div class="flex-shrink-0 pt-5">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onchange={() => state.kanban.toggleSelection(s.id)}
+          class="w-4 h-4 rounded border-2 border-base-border-1
+               checked:bg-primary-1 checked:border-primary-1
+               transition-all cursor-pointer"
+        />
+      </div>
+    {:else}
+      <GripVertical class="w-4 h-4 text-muted-foreground" />
+    {/if}
   </div>
 
   <div class="mb-2">
@@ -51,10 +70,10 @@
       Ứng viên: {s.fullName}
     </h4>
   </div>
-
+  <!-- 
   <p class="text-xs text-muted-foreground line-clamp-2 mb-3 italic">
     {s.aiAssessment?.summary || "Chưa có đánh giá từ AI..."}
-  </p>
+  </p> -->
 
   <div class="flex items-center gap-2 mb-3">
     <span
@@ -84,9 +103,6 @@
   <div
     class="mt-auto flex items-center justify-between pt-2 border-t border-base-border-1/50 w-full"
   >
-    <span class="text-primary-1 text-[11px] font-bold group-hover:underline"
-      >Chi tiết</span
-    >
     <span class="text-[10px] text-muted-foreground">
       {formatRelativeTime(s.submittedAt)}
     </span>
