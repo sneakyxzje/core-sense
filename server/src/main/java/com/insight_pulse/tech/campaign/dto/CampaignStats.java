@@ -1,7 +1,8 @@
 package com.insight_pulse.tech.campaign.dto;
 
 public record CampaignStats(
-    Integer totalSubmissions,
+    int submissionThisMonth,
+    double differencePercent,
     Integer activeCampaigns,
     Double highQualityRatio
 ) {
