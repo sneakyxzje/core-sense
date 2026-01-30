@@ -31,6 +31,7 @@
     onArchive,
     onStarred,
     campaignId,
+    onShowBulk,
   }: {
     column: CampaignStage;
     flipDurationMs: number;
@@ -42,6 +43,7 @@
     onArchive: (s: string) => void;
     onStarred: (s: string) => void;
     campaignId: string | undefined;
+    onShowBulk: () => void;
   } = $props();
   let internalItems = $state(items);
   let isDraggingInternal = $state(false);
@@ -62,7 +64,9 @@
   const handleStarred = (s: string) => {
     onStarred(s);
   };
-
+  const handleBulk = () => {
+    onShowBulk();
+  };
   const handleConsider = (e: CustomEvent<DndEvent<Submission>>) => {
     isDraggingInternal = true;
     const { items } = e.detail;
@@ -102,6 +106,7 @@
         <DropdownMenu.Group>
           <DropdownMenu.Item
             class="flex items-center gap-2 hover:bg-base-3 cursor-pointer py-2 px-3 text-sm"
+            onclick={() => onShowBulk()}
           >
             <Zap class="w-3.5 h-3.5" />
             <span>Thao tác</span>
