@@ -64,6 +64,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, String>,
 
     Optional<Submission> findByIdAndCampaign_User_Id(String submissionId, int userId);
 
+
     @Query(value = """
                 SELECT s.* FROM submissions s
                 JOIN campaigns c ON s.campaigns_id = c.id
@@ -96,6 +97,16 @@ public interface SubmissionRepository extends JpaRepository<Submission, String>,
         @Param("userId") int userId, 
         @Param("now") LocalDateTime now
     );
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = """
+        UPDATE submissions s
+        SET is_deleted = true, 
+            deleted_at = NOW()
+        WHERE s.id IN :ids
+        """, nativeQuery = true)
+    int archiveAll(@Param("ids") List<String> ids);
 
     @Modifying(clearAutomatically = true)
     @Transactional
