@@ -24,6 +24,12 @@
         toStage: data.automations?.[0]?.toStageId ?? "",
         status: data.automations?.[0]?.isActive ?? false,
       },
+      {
+        campaignId: states.campaignId ?? "",
+        eventCode: data.automations?.[1]?.eventCode ?? "MAIL_AUTO",
+        toStage: data.automations?.[1]?.toStageId ?? "",
+        status: data.automations?.[1]?.isActive ?? false,
+      },
     ],
   });
 
@@ -35,6 +41,10 @@
     target:
       states.kanban.columns.find(
         (c) => c.id === draftSettings.automations[0].toStage,
+      )?.stageName ?? "Chọn cột đích",
+    mailTarget:
+      states.kanban.columns.find(
+        (c) => c.id === draftSettings.automations[1].toStage,
       )?.stageName ?? "Chọn cột đích",
     isInvalid:
       draftSettings.automations[0].status &&
@@ -89,7 +99,7 @@
         </h4>
 
         <button
-          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
+          class="flex cursor-pointer items-center gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
           'general'
             ? 'bg-primary-1 text-white shadow-sm'
             : 'hover:bg-base-2 text-base-fg-2'}"
@@ -99,7 +109,7 @@
         </button>
 
         <button
-          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
+          class="flex cursor-pointer items-center gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
           'automation'
             ? 'bg-primary-1 text-white shadow-sm'
             : 'hover:bg-base-2 text-base-fg-2'}"
@@ -117,7 +127,7 @@
         </h4>
 
         <button
-          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
+          class="flex items-center cursor-pointer gap-3 px-3 py-2 rounded-md text-sm transition-all {states.activeTab ===
           'sharing'
             ? 'bg-primary-1 text-white shadow-sm'
             : 'hover:bg-base-2 text-base-fg-2'}"
@@ -190,7 +200,7 @@
                         <h4 class="font-bold text-sm tracking-tight">
                           Tự động chuyển cột khi AI đánh giá
                         </h4>
-                        <p class="text-[11px] text-muted-foreground">
+                        <p class="text-[11px] text-base-fg-3">
                           Chuyển ứng viên vào cột chỉ định sau khi hoàn tất phân
                           tích
                         </p>
@@ -282,6 +292,75 @@
                       </p>
                     {/if}
                   </Collapsible.Content>
+                </Collapsible.Root>
+              </Card.Root>
+            </div>
+
+            <div class="grid gap-4">
+              <Card.Root
+                class="overflow-hidden border-none shadow-none transition-all duration-300 "
+              >
+                <Collapsible.Root
+                  bind:open={draftSettings.automations[1].status}
+                >
+                  <div class=" flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                      <div class="grid gap-0.5 text-left">
+                        <h4
+                          class="font-bold text-sm text-base-fg-1 tracking-tight"
+                        >
+                          Tự động gửi email
+                        </h4>
+                        <p class="text-[11px] text-base-fg-3">
+                          Tự động gửi email khi ứng viên ở cột đích
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-1.5">
+                      <Checkbox
+                        id="mail-auto"
+                        bind:checked={draftSettings.automations[1].status}
+                      />
+                    </div>
+                  </div>
+                  <Collapsible.Content>
+                    <div
+                      class=" pt-2 border-t mt-4 border-base-border-1/30 bg-base-3/30 rounded-b-xl"
+                    >
+                      <div class="flex items-end gap-3 mt-4">
+                        <div class="flex-1 space-y-2">
+                          <div class="flex-1 space-y-2">
+                            <div class="flex items-center gap-2 ml-1">
+                              <span
+                                class="text-[10px] font-bold uppercase tracking-widest"
+                              >
+                                Đích
+                              </span>
+                            </div>
+                            <Select.Root
+                              type="single"
+                              bind:value={draftSettings.automations[1].toStage}
+                            >
+                              <Select.Trigger
+                                class="h-10 bg-base-2 w-full border border-base-border-2 hover:border-base-border-hover transition-colors text-xs font-bold shadow-none "
+                              >
+                                {display.mailTarget}
+                              </Select.Trigger>
+                              <Select.Content
+                                class="bg-base-2 border-base-border-2"
+                              >
+                                {#each states.kanban.columns as stage}
+                                  <Select.Item value={stage.id} class="text-xs"
+                                    >{stage.stageName}</Select.Item
+                                  >
+                                {/each}
+                              </Select.Content>
+                            </Select.Root>
+                          </div>
+                        </div>
+                      </div>
+                    </div></Collapsible.Content
+                  >
                 </Collapsible.Root>
               </Card.Root>
             </div>
