@@ -25,7 +25,6 @@
       label: "Tổng quan",
       items: [
         { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-        { title: "Thông báo", url: "/notifications", icon: Bell },
       ],
     },
     {
