@@ -5,18 +5,17 @@
   import { useCampaignState } from "@src/routes/(app)/campaigns/[campaignId]/state/index.svelte";
 
   const states = useCampaignState();
-  const kanban = states.kanban;
 
   let selectedStageId = $state<string | null>(null);
 
   $effect(() => {
-    if (!kanban.isBulkMoveDialogOpen) {
+    if (states.submissions.isBulkMoveDialogOpen) {
       selectedStageId = null;
     }
   });
 </script>
 
-<Dialog.Root bind:open={kanban.isBulkMoveDialogOpen}>
+<Dialog.Root bind:open={states.submissions.isBulkMoveDialogOpen}>
   <Dialog.Content class="bg-base-3 border-base-border-1 p-0 overflow-hidden">
     <div class="px-6 py-4 bg-base-2/50 border-b border-base-border-1">
       <Dialog.Header>
@@ -26,7 +25,7 @@
               >Di chuyển ứng viên</Dialog.Title
             >
             <p class="text-xs text-muted-foreground mt-1">
-              Chọn cột đích cho {kanban.selectedCount} ứng viên
+              Chọn cột đích cho {states.submissions.selectedCount} ứng viên
             </p>
           </div>
         </div>
@@ -40,7 +39,7 @@
         <h3 class="text-sm font-semibold mb-3">Chọn cột đích:</h3>
 
         <div class="space-y-2">
-          {#each kanban.columns as column (column.id)}
+          {#each states.kanban.columns as column (column.id)}
             <button
               class="w-full p-3 rounded-lg border-2 transition-all text-left
                      flex items-center justify-between group
@@ -73,7 +72,10 @@
     <div
       class="px-6 py-4 bg-base-2/30 border-t border-base-border-1 flex gap-2 justify-end"
     >
-      <Button variant="ghost" onclick={() => kanban.closeBulkMoveDialog()}>
+      <Button
+        variant="ghost"
+        onclick={() => states.submissions.closeBulkMoveDialog()}
+      >
         <X class="w-3.5 h-3.5 mr-1" />
         Hủy
       </Button>
@@ -84,7 +86,7 @@
         disabled={!selectedStageId}
         onclick={() => {
           if (selectedStageId) {
-            kanban.bulkMove(selectedStageId);
+            states.submissions.bulkMove(selectedStageId);
           }
         }}
       >
