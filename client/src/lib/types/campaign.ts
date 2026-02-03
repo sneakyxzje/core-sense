@@ -73,7 +73,7 @@ export interface CampaignSetting {
   automations: Array<{
     campaignId: string;
     eventCode: string;
-    fromStage: string;
+    fromStage?: string;
     toStage: string;
     status: boolean;
   }>;
