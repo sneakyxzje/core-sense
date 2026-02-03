@@ -18,7 +18,7 @@
 
   let { s }: { s: Submission } = $props();
   const state = useCampaignState();
-  const isSelected = $derived(state.kanban.selectedIds.has(s.id));
+  const isSelected = $derived(state.submissions.selectedIds.has(s.id));
 </script>
 
 <button
@@ -27,7 +27,7 @@
     ? 'bg-primary-1/5 border-primary-1 ring-2 ring-primary-1/20'
     : 'bg-base-3 border border-transparent hover:border-base-border-1'}"
   onclick={() => {
-    if (!state.kanban.showBulk) {
+    if (!state.submissions.showBulk) {
       state.submissions.openSummary(s);
     }
   }}
@@ -44,12 +44,12 @@
   {/if}
 
   <div class="absolute right-2 top-2 transition-opacity">
-    {#if state.kanban.showBulk}
+    {#if state.submissions.showBulk}
       <div class="flex-shrink-0 pt-5">
         <input
           type="checkbox"
           checked={isSelected}
-          onchange={() => state.kanban.toggleSelection(s.id)}
+          onchange={() => state.submissions.toggleSelection(s.id)}
           class="w-4 h-4 rounded border-2 border-base-border-1
                checked:bg-primary-1 checked:border-primary-1
                transition-all cursor-pointer"
