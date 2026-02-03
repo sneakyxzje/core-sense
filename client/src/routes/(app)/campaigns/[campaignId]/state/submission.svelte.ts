@@ -14,6 +14,8 @@ interface Search {
     to: string | null;
   };
 }
+
+type BulkAction = "MOVE_TO_STAGE" | "ARCHIVE";
 export class SubmissionState {
   items = $state<Submission[]>([]);
   search = $state<Search>({
@@ -25,7 +27,9 @@ export class SubmissionState {
       to: null,
     },
   });
-
+  selectedSubmissions = $derived(
+    this.items.filter((s) => this.selectedSubmissionIds.has(s.id)),
+  );
   tempFilter = $state({
     minScore: null,
     maxScore: null,
@@ -37,7 +41,6 @@ export class SubmissionState {
   totalPages = $state(0);
   totalElements = $state(0);
   isComparisonOpen = $state(false);
-  stateComparison = $state<Submission[]>([]);
   debouncedSearch = useDebounce(() => this.search, 500);
   private isInitialized = false;
   private campaignId: string;
@@ -57,6 +60,10 @@ export class SubmissionState {
       }
     });
   }
+
+  getSubmissions = () => {
+    return this.items;
+  };
 
   fetchSubmissions = async (page: number, query: Search) => {
     try {
@@ -92,20 +99,6 @@ export class SubmissionState {
 
   showComparison = () => {
     this.isComparisonOpen = true;
-  };
-
-  checkComparison = (checked: boolean, sub: Submission) => {
-    if (checked) {
-      if (this.stateComparison.length < 2) {
-        this.stateComparison.push(sub);
-      } else {
-        toast.warning("Chỉ được chọn tối đa 2 ứng viên để so sánh");
-      }
-    } else {
-      this.stateComparison = this.stateComparison.filter(
-        (item) => item.id !== sub.id,
-      );
-    }
   };
 
   isProcessing = $state(false);
@@ -208,6 +201,7 @@ export class SubmissionState {
     this.selectedSubmission = sub;
     this.interviewForm = { schedule: "", location: "", notes: "" };
     this.isInterviewOpen = true;
+    this.isSummaryOpen = false;
   };
 
   executeInterview = async () => {
@@ -241,5 +235,180 @@ export class SubmissionState {
   resetFilter = () => {
     this.tempFilter = { minScore: null, maxScore: null, from: null, to: null };
     this.applyFilter();
+  };
+
+  isBulkMoveDialogOpen = $state(false);
+  selectedSubmissionIds = $state<Set<string>>(new Set());
+
+  selectedCount = $derived(this.selectedSubmissionIds.size);
+  selectedIds = $derived(this.selectedSubmissionIds);
+
+  showBulk = $state(false);
+  clearSelection = () => {
+    this.selectedSubmissionIds = new Set();
+  };
+
+  toggleBulkMode = () => {
+    this.showBulk = !this.showBulk;
+    if (!this.showBulk) {
+      this.clearSelection();
+    }
+  };
+  onShowBulk = () => {
+    this.toggleBulkMode();
+  };
+
+  exitBulkMode = () => {
+    this.showBulk = false;
+    this.clearSelection();
+  };
+
+  toggleSelection = (submissionId: string) => {
+    if (this.selectedSubmissionIds.has(submissionId)) {
+      this.selectedSubmissionIds.delete(submissionId);
+    } else {
+      this.selectedSubmissionIds.add(submissionId);
+    }
+    this.selectedSubmissionIds = new Set(this.selectedSubmissionIds);
+    if (this.selectedSubmissionIds.size === 0) {
+      this.showBulk = false;
+    }
+  };
+  openBulkMoveDialog = () => {
+    if (this.selectedSubmissionIds.size === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
+      return;
+    }
+    this.isBulkMoveDialogOpen = true;
+  };
+
+  closeBulkMoveDialog = () => {
+    this.isBulkMoveDialogOpen = false;
+  };
+
+  static readonly BULK_ACTIONS = {
+    MOVE: "MOVE_TO_STAGE",
+    ARCHIVE: "ARCHIVE",
+  } as const;
+
+  bulkMove = async (targetStageId: string) => {
+    const selectedIds = Array.from(this.selectedSubmissionIds);
+    if (selectedIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
+      return;
+    }
+    try {
+      toast.success(`Đang di chuyển ${selectedIds.length} ứng viên...`);
+      await api.post(
+        `/campaigns/${this.campaignId}/submissions:bulk-move`,
+        {
+          submissionIds: selectedIds,
+          action: SubmissionState.BULK_ACTIONS.MOVE,
+          targetStageId: targetStageId,
+        },
+        fetch,
+      );
+
+      const updatedSubmissions = this.getSubmissions().map((s) => {
+        if (selectedIds.includes(s.id)) {
+          return { ...s, stageId: targetStageId };
+        }
+        return s;
+      });
+      this.items = updatedSubmissions;
+      toast.success(`Đã di chuyển ${selectedIds.length} ứng viên thành công`);
+      this.clearSelection();
+      this.exitBulkMode();
+      this.isBulkMoveDialogOpen = false;
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể di chuyển ứng viên");
+    }
+  };
+
+  bulkArchive = async () => {
+    const selectedIds = Array.from(this.selectedSubmissionIds);
+    if (selectedIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
+      return;
+    }
+    try {
+      toast.success(`Đang lưu trữ ${selectedIds.length} ứng viên...`);
+      await api.post(
+        `/campaigns/${this.campaignId}/submissions:bulk-archive`,
+        {
+          submissionIds: selectedIds,
+          action: SubmissionState.BULK_ACTIONS.ARCHIVE,
+        },
+        fetch,
+      );
+      const updatedSubmissions = this.getSubmissions().map((s) => {
+        if (selectedIds.includes(s.id)) {
+          return { ...s, archived: true, deletedAt: new Date().toISOString() };
+        }
+        return s;
+      });
+      this.items = updatedSubmissions;
+      toast.success(`Đã lưu trữ ${selectedIds.length} ứng viên thành công`);
+      this.clearSelection();
+      this.exitBulkMode();
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể loại bỏ ứng viên");
+    }
+  };
+  bulkDownload = async () => {
+    const selectedIds = Array.from(this.selectedSubmissionIds);
+    if (selectedIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
+      return;
+    }
+
+    try {
+      toast.success(`Đang tải ${selectedIds.length} CV...`);
+
+      const response = await api.post(
+        `/campaigns/${this.campaignId}/submissions/bulk-download`,
+        { submissionIds: selectedIds },
+        fetch,
+      );
+
+      toast.success(`Đã tải ${selectedIds.length} CV thành công`);
+      this.clearSelection();
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể tải CV");
+    }
+  };
+
+  bulkDelete = async () => {
+    const selectedIds = Array.from(this.selectedSubmissionIds);
+    if (selectedIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một ứng viên");
+      return;
+    }
+
+    if (!confirm(`Bạn có chắc muốn xóa ${selectedIds.length} ứng viên?`)) {
+      return;
+    }
+
+    try {
+      await api.post(
+        `/campaigns/${this.campaignId}/submissions/bulk-delete`,
+        { submissionIds: selectedIds },
+        fetch,
+      );
+
+      const updatedSubmissions = this.getSubmissions().filter(
+        (s) => !selectedIds.includes(s.id),
+      );
+      this.items = updatedSubmissions;
+      toast.success(`Đã xóa ${selectedIds.length} ứng viên`);
+      this.clearSelection();
+      this.exitBulkMode();
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể xóa ứng viên");
+    }
   };
 }
