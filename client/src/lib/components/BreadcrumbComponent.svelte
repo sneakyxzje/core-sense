@@ -17,6 +17,7 @@
   import { notificationStore } from "@src/lib/stores/notification.svelte";
   import { formatRelativeTime } from "@src/lib/utils/dateUtils";
   import { formatLabel } from "@src/lib/utils/textUtils";
+  import { goto } from "$app/navigation";
   const sidebar = Sidebar.useSidebar();
   function getBreadcrumbLabel(segment: string) {
     const data = page.data;
@@ -49,7 +50,7 @@
             (t) =>
               t !== "" &&
               t !== page.params.submissionId &&
-              t.toLowerCase() !== "dashboard"
+              t.toLowerCase() !== "dashboard",
           )}
         {#if paths.length === 0}
           <Breadcrumb.Item>
@@ -130,6 +131,9 @@
                   onclick={(e) => {
                     e.stopPropagation();
                     notificationStore.markAsRead(noti.id);
+                    if (noti.type === "INTERVIEW") {
+                      goto(`/interviews`);
+                    }
                   }}
                 >
                   <div
