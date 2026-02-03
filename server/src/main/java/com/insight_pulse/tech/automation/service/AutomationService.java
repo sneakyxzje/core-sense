@@ -21,6 +21,7 @@ import com.insight_pulse.tech.campaign.domain.Campaign;
 import com.insight_pulse.tech.campaign.domain.CampaignRepository;
 import com.insight_pulse.tech.campaign.domain.CampaignStage;
 import com.insight_pulse.tech.campaign.domain.CampaignStageRepository;
+import com.insight_pulse.tech.email.service.EmailService;
 import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
@@ -39,28 +40,48 @@ public class AutomationService {
     private final CampaignStageRepository campaignStageRepository;
     private final SubmissionRepository submissionRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
+    private final EmailService emailService;
+    private String mailDemo = "hr@coresense.tech";
+    private String subjectDemo = "[INTERVIEW]: Interview schedule";
     public void executeAutomation(Integer userId, String submissionId, AutomationEnum eventCode) {
         Submission submission = submissionRepository.findById(submissionId).orElseThrow(() -> new RuntimeException("Submission not found"));
         String fromStageId = submission.getCurrentStage().getId();
         Optional<Automation> ruleOpt = automationRepository.findByCampaignIdAndEventCodeAndFromStageId(submission.getCampaign().getId(), eventCode, submission.getCurrentStage().getId());
         if(ruleOpt.isPresent() && ruleOpt.get().isActive()) {
             Automation rule = ruleOpt.get();
-            submission.setCurrentStage(rule.getToStage());
-            submissionRepository.save(submission);
-            AutomationResponse response = new AutomationResponse(
-                userId.toString(),
-                "AI_AUTOMATION_MOVE",
-                submissionId,
-                fromStageId,
-                rule.getToStage().getId(),
-                "AI đã tự động chuyển hồ sơ sang cột " + rule.getToStage().getStageName()
-            );
-            System.out.println(">>> WebSocket sending to user: " + userId);
-            messagingTemplate.convertAndSend(
-                "/topic/" + userId + "/campaign/" + submission.getCampaign().getId(), 
-                response
-            );
+            switch(eventCode) {
+                case AI_FILTER:
+                    submission.setCurrentStage(rule.getToStage());
+                    submissionRepository.save(submission);
+                    AutomationResponse response = new AutomationResponse(
+                        userId.toString(),
+                        "AI_AUTOMATION_MOVE",
+                        submissionId,
+                        fromStageId,
+                        rule.getToStage().getId(),
+                        "AI đã tự động chuyển hồ sơ sang cột " + rule.getToStage().getStageName()
+                    );
+                    messagingTemplate.convertAndSend(
+                        "/topic/" + userId + "/campaign/" + submission.getCampaign().getId(), 
+                        response
+                    );
+                    break;
+                case MAIL_AUTO:
+                    emailService.sendFlexible(mailDemo, subjectDemo, "Test body",null, null, submissionId);               
+                    response = new AutomationResponse(
+                        userId.toString(),
+                        "AI_MAIL_AUTO",
+                        submissionId,
+                        fromStageId,
+                        rule.getToStage().getId(),
+                        "Đang tự động gửi email.. "
+                    );
+                    messagingTemplate.convertAndSend(
+                        "/topic/" + userId + "/campaign/" + submission.getCampaign().getId(), 
+                        response
+                    );
+                    break;
+            }
         } 
     }
 
@@ -73,7 +94,14 @@ public class AutomationService {
         if(request == null) request = Collections.emptyList();
 
         List<AutomationRequest> validRequests = request.stream()
-        .filter(req -> req.toStage() != null && !req.fromStage().isEmpty()).toList();
+        .filter(req -> {
+            if (req.eventCode() == AutomationEnum.AI_FILTER) {
+                return req.toStage() != null && req.fromStage() != null && !req.fromStage().isEmpty();
+            } else if (req.eventCode() == AutomationEnum.MAIL_AUTO) {
+                return req.toStage() != null;
+            }
+            return false;
+        }).toList();
 
         boolean hasExisting = automationRepository.existsByCampaignId(campaignId);
         if(validRequests.isEmpty() && !hasExisting) {
@@ -95,8 +123,16 @@ public class AutomationService {
 
         if(!validRequests.isEmpty()) {
             List<Automation> newAutomations = validRequests.stream().map(req -> {
-                CampaignStage from = (req.fromStage() != null) ? stageMap.get(req.fromStage()) : null;
-                CampaignStage to = stageMap.get(req.toStage());
+                CampaignStage from;
+                CampaignStage to;
+
+                if (req.eventCode() == AutomationEnum.MAIL_AUTO) {
+                    from = stageMap.get(req.toStage());
+                    to = from; 
+                } else {
+                    from = stageMap.get(req.fromStage());
+                    to = stageMap.get(req.toStage());
+                }
 
                 if(to == null) throw new RuntimeException("Target stage not found");
 
