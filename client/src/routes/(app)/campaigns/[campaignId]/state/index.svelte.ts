@@ -69,6 +69,15 @@ export class CampaignDetailState {
             } else {
               toast.error("Đã có lỗi xảy ra");
             }
+          } else if (data.type === "AI_MAIL_AUTO") {
+            const target = this.submissions.items.find(
+              (s) => s.id === data.submissionId,
+            );
+            if (target) {
+              toast.success(data.message);
+            } else {
+              toast.error("Đã có lỗi xảy ra");
+            }
           }
         },
       );
@@ -85,7 +94,6 @@ export class CampaignDetailState {
       toast.error("Không được để 2 cột trùng nhau");
       return;
     }
-
     if (this.isSaving) return;
     this.isSaving = true;
 
