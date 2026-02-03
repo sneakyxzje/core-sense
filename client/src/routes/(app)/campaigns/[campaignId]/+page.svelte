@@ -254,31 +254,6 @@
     </div>
   </div>
 
-  {#if states.submissions.stateComparison.length >= 2}
-    <div
-      transition:fly={{ y: 20, duration: 300 }}
-      class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-info-1 px-6 py-3"
-    >
-      <div class="flex items-center gap-2 border-r border-base-border-1 pr-4">
-        <span class="text-sm text-primary-fg-1 font-medium"
-          >{states.submissions.stateComparison.length} ứng viên được chọn</span
-        >
-      </div>
-      <button
-        onclick={states.submissions.showComparison}
-        class="flex items-center gap-2 text-sm text-primary-fg-1 cursor-pointer bg-info-1 font-bold transition-colors"
-      >
-        So sánh ngay
-      </button>
-      <button
-        onclick={() => (states.submissions.stateComparison = [])}
-        class="p-1 hover:bg-white/10 rounded-full transition-colors"
-      >
-        <X class="w-4 h-4" />
-      </button>
-    </div>
-  {/if}
-
   <div class="flex-1 min-h-0 min-w-0 w-full relative border-base-border-1">
     {#if states.viewMode === "table"}
       <div class="absolute inset-0 h-full overflow-auto">
