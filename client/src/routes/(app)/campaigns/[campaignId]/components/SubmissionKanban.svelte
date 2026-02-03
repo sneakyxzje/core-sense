@@ -33,7 +33,7 @@
       onArchive={(s) => globalState.submissions.handleArchive(s)}
       onDelete={(s) => globalState.kanban.handleDelete(s)}
       onStarred={(s) => globalState.submissions.handleStarred(s)}
-      onShowBulk={() => globalState.kanban.onShowBulk()}
+      onShowBulk={() => globalState.submissions.onShowBulk()}
     />
   {/each}
   <Dialog.Root bind:open={globalState.kanban.isDeletePopupOpen}>
