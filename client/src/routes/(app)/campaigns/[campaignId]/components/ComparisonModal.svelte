@@ -40,8 +40,8 @@
             VS
           </div>
 
-          {#if globalState.submissions.stateComparison}
-            {#each globalState.submissions.stateComparison as s, id}
+          {#if globalState.submissions.selectedSubmissions}
+            {#each globalState.submissions.selectedSubmissions as s, id}
               <div
                 class="flex flex-col h-full space-y-4 border border-base-border-1 rounded-lg p-6 bg-card shadow-sm hover:border-primary/50 transition-colors"
               >
@@ -118,7 +118,7 @@
             disabled={globalState.submissions.isProcessing}
             onclick={() =>
               globalState.submissions.onComparisonSubmit(
-                globalState.submissions.stateComparison,
+                globalState.submissions.selectedSubmissions,
               )}
             class="px-10 py-7 text-lg font-bold bg-primary-1 text-primary-fg-1 hover:bg-primary-hover rounded-xl transition-all gap-3"
           >
