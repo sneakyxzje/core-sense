@@ -64,9 +64,7 @@
   const handleStarred = (s: string) => {
     onStarred(s);
   };
-  const handleBulk = () => {
-    onShowBulk();
-  };
+
   const handleConsider = (e: CustomEvent<DndEvent<Submission>>) => {
     isDraggingInternal = true;
     const { items } = e.detail;
