@@ -118,11 +118,9 @@
               <div class="flex justify-center items-center h-8">
                 <Checkbox
                   class="border-base-border-2 bg-base-2"
-                  onCheckedChange={(checked) =>
-                    state.submissions.checkComparison(checked, sub)}
-                  checked={state.submissions.stateComparison.some(
-                    (item) => item.id === sub.id,
-                  )}
+                  onCheckedChange={() =>
+                    state.submissions.toggleSelection(sub.id)}
+                  checked={state.submissions.selectedSubmissionIds.has(sub.id)}
                 />
               </div>
             </TableCell>
