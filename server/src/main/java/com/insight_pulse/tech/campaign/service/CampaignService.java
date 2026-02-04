@@ -83,7 +83,7 @@ public class CampaignService {
 
     public List<StageResponse> getAllStage(String campaignId) {
         int userId = currentUserProvider.getCurrentUserId();
-        List<CampaignStage> stages = campaignStageRepository.findAllByCampaignIdAndCampaignUserId(campaignId, userId);
+        List<CampaignStage> stages = campaignStageRepository.findAllByCampaignIdAndCampaignUserIdOrderByPositionAsc(campaignId, userId);
         return stages.stream().map(campaignMapper::toStageResponse).toList();
     }
 
