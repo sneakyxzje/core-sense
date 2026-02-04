@@ -5,7 +5,8 @@ public record EmailTemplateResponse(
     String name,
     String subject,
     String description,
-    String customBody    
+    String customBody,
+    String defaultBody    
 ) {
     
 }
