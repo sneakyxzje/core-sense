@@ -15,6 +15,7 @@
     Trash,
     Trash2,
     Calendar,
+    LayoutPanelTop,
   } from "lucide-svelte";
   import { AuthState } from "@src/routes/(auth)/page.svelte";
   import { goto } from "$app/navigation";
@@ -23,15 +24,13 @@
   const items = [
     {
       label: "Tổng quan",
-      items: [
-        { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      ],
+      items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard }],
     },
     {
       label: "Tuyển dụng",
       items: [
         { title: "Chiến dịch", url: "/campaigns", icon: FileText },
-        { title: "Ứng viên", url: "/candidates", icon: Users },
+        { title: "Templates", url: "/templates", icon: LayoutPanelTop },
         { title: "Phỏng vấn", url: "/interviews", icon: Calendar },
       ],
     },
