@@ -72,12 +72,10 @@
       </div>
       <div class="flex items-center gap-2">
         <Button
-          variant="outline"
+          class="border border-base-border-1 hover:border-base-border-hover"
           size="sm"
-          onclick={() => (states.isCampaignSettingOpen = false)}
+          onclick={() => (states.isCampaignSettingOpen = false)}>Đóng</Button
         >
-          Đóng
-        </Button>
         <Button
           size="sm"
           onclick={() => states.onSaveSetting(draftSettings)}
