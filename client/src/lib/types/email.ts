@@ -3,6 +3,7 @@ export interface EmailInteface {
   to: string;
   subject: string;
   body: string;
+  defaultBody: string;
   slug: string;
   variables?: Object;
 }
