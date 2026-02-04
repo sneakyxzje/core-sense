@@ -18,6 +18,7 @@
     to: "",
     subject: "",
     body: "",
+    defaultBody: "",
     submissionId: "",
     slug: "",
     variables: {},
@@ -117,7 +118,8 @@
             );
             if (selected) {
               emailData.subject = selected.subject;
-              emailData.body = selected.customBody;
+              emailData.body =
+                selected.customBody || selected.defaultBody || "";
               emailData.slug = selected.slug;
             }
           }}
