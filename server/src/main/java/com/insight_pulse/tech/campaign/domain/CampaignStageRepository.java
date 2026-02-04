@@ -12,7 +12,7 @@ public interface CampaignStageRepository extends JpaRepository<CampaignStage, St
     @Query("SELECT MAX(s.position) FROM CampaignStage s WHERE s.campaign.id = :campaignId")
     Integer findMaxPositionByCampaignId(String campaignId);
 
-    List<CampaignStage> findAllByCampaignIdAndCampaignUserId(String campaignId, int userId);   
+    List<CampaignStage> findAllByCampaignIdAndCampaignUserIdOrderByPositionAsc(String campaignId, int userId);   
 
     CampaignStage findByCampaignIdAndCampaignUserId(String campaignId, int userId);
 
