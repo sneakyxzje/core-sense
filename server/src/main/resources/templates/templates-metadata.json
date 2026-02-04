@@ -1,0 +1,17 @@
+[
+  {
+    "id": "default-templates",
+    "fileName": "default-layout.html",
+    "displayName": "Mẫu đơn giản",
+    "description": "Dùng cho mọi trường hợp.",
+    "category": "Default"
+  },
+  {
+    "id": "INTERVIEW_INVITE",
+    "fileName": "interview-invite.html",
+    "displayName": "Mẫu thư mời phỏng vấn",
+    "description": "Gửi lời mời hẹn phỏng vấn cho ứng viên.",
+    "category": "Interviews",
+    "defaultBody": "<p>Chào bạn,</p><p>Chúng tôi rất ấn tượng với kết quả phân tích hồ sơ của bạn và muốn mời bạn tham gia buổi phỏng vấn trực tiếp vào tuần tới.</p>"
+  }
+]
