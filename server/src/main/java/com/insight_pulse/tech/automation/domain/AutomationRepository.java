@@ -10,7 +10,7 @@ public interface AutomationRepository extends JpaRepository<Automation, Long>{
 
     Optional<Automation> findByCampaignIdAndEventCodeAndFromStageId(String campaignId, AutomationEnum eventCode, String fromStageId);    
 
-    Automation deleteByCampaignId(String campaignId);
+    void deleteByCampaignId(String campaignId);
 
     List<Automation> findAllByCampaignId(String campaignId);
 
