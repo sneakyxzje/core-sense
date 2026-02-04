@@ -1,9 +1,14 @@
 package com.insight_pulse.tech.email.service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -12,8 +17,12 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insight_pulse.tech.email.domain.EmailTemplate;
 import com.insight_pulse.tech.email.domain.EmailTemplateRepository;
+import com.insight_pulse.tech.email.dto.EmailTemplateDTO;
+import com.insight_pulse.tech.email.dto.EmailTemplateMetadata;
 import com.insight_pulse.tech.email.dto.EmailTemplateResponse;
 import com.insight_pulse.tech.submission.domain.Submission;
 import com.insight_pulse.tech.submission.domain.SubmissionRepository;
@@ -32,7 +41,7 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final EmailTemplateRepository templateRepository;
     private final SubmissionRepository submissionRepository;
-
+    private final ObjectMapper objectMapper;
     private String replacePlaceholders(String content, Map<String, Object> data) {
         if (content == null) return "";
             for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -76,9 +85,6 @@ public class EmailService {
         Submission submission = submissionRepository.findById(submissionId)
         .orElseThrow(() -> new RuntimeException("Submission not found"));
         variables.put("candidate_name", submission.getFullname());
-        System.out.println("DEBUG: Submission ID = " + submission.getId());
-        System.out.println("DEBUG: Fullname from DB = [" + submission.getFullname() + "]");
-        String processed = replacePlaceholders(customBody, variables);
         String finalTemplate;
         if(templateSlug != null && !templateSlug.isEmpty()) {
             EmailTemplate emailTemplate = templateRepository.findBySlug(templateSlug)
@@ -88,20 +94,81 @@ public class EmailService {
         } else {
             finalTemplate = "default/default-layout";
         }
+        String bodyToUse = customBody;
+        if(bodyToUse == null || bodyToUse.isEmpty()) {
+            try {
+                EmailTemplateMetadata metadata = findMetadataBySlug(templateSlug);
+                bodyToUse = metadata.defaultBody();
+            } catch(Exception e) {
+                log.warn("Cannot find metadata, empty content");
+                bodyToUse = "";
+            }
+        }
+        String processed = replacePlaceholders(bodyToUse, variables);
         variables.put("bodyContent", processed);
 
         String htmlContent = renderTemplate(finalTemplate, variables);
         send(from, submission.getEmail(), subject,htmlContent);
     }
 
-    public List<EmailTemplateResponse> getAllTemplate() {
+    public List<EmailTemplateResponse> getAllTemplate() throws IOException {
         List<EmailTemplate> emailTemplate = templateRepository.findAll();
-        return emailTemplate.stream().map(e -> new EmailTemplateResponse(
-            e.getSlug(),
-            e.getName(),
-            e.getSubject(),
-            e.getDescription(),
-            e.getCustomBody()
-        )).toList();
+        List<EmailTemplateMetadata> metadataList = loadAllMetadata();
+        return emailTemplate.stream().map(e -> {
+            String defaultBody = metadataList.stream()
+            .filter(m -> m.id().equals(e.getSlug()))
+            .map(EmailTemplateMetadata::defaultBody)
+            .findFirst().orElse("");
+
+            return new EmailTemplateResponse(
+                e.getSlug(),
+                e.getName(),
+                e.getSubject(),
+                e.getDescription(),
+                e.getCustomBody(),
+                defaultBody
+            );
+        }).toList();
     }
+
+   public List<EmailTemplateDTO> getMarketTemplates() throws IOException {
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource metaResource = resolver.getResource("classpath:templates/templates-metadata.json");
+    List<EmailTemplateMetadata> metaDataList = objectMapper.readValue(metaResource.getInputStream(), new TypeReference<List<EmailTemplateMetadata>>() {  
+    });
+
+    List<EmailTemplateDTO> templates = new ArrayList<>();
+
+    for(EmailTemplateMetadata meta : metaDataList) {
+       Resource[] htmlRes = resolver.getResources("classpath:templates/**/" + meta.fileName()); 
+       if(htmlRes.length > 0) {
+        String content = new String(htmlRes[0].getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        templates.add(new EmailTemplateDTO(
+            meta.id(),
+            meta.displayName(),
+            meta.description(),
+            meta.category(),
+            content
+        ));
+       }
+    }
+    return templates;
+   } 
+
+   private EmailTemplateMetadata findMetadataBySlug(String slug) throws IOException {
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource metaResource = resolver.getResource("classpath:templates/templates-metadata.json");
+    List<EmailTemplateMetadata> metaDataList = objectMapper.readValue(metaResource.getInputStream(), new TypeReference<List<EmailTemplateMetadata>>() {  
+    });
+    return metaDataList.stream().filter(m -> m.id().equals(slug))
+    .findFirst().orElseThrow(() -> new RuntimeException("Cannot find metadata for slug: " + slug));
+   }
+
+   private List<EmailTemplateMetadata> loadAllMetadata() throws IOException {
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource metaResource = resolver.getResource("classpath:templates/templates-metadata.json");
+    List<EmailTemplateMetadata> metaDataList = objectMapper.readValue(metaResource.getInputStream(), new TypeReference<List<EmailTemplateMetadata>>() {  
+    });
+    return metaDataList; 
+   }
 }
