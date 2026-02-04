@@ -1,5 +1,6 @@
 package com.insight_pulse.tech.email.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.insight_pulse.tech.email.dto.EmailTemplateDTO;
 import com.insight_pulse.tech.email.dto.EmailTemplateResponse;
 import com.insight_pulse.tech.email.dto.SendEmailRequest;
 import com.insight_pulse.tech.email.service.EmailService;
@@ -37,7 +39,12 @@ public class EmailController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmailTemplateResponse>> getAllTemplate() {
+    public ResponseEntity<List<EmailTemplateResponse>> getAllTemplate() throws IOException {
         return ResponseEntity.ok(emailService.getAllTemplate());
+    }
+
+    @GetMapping("/market")
+    public ResponseEntity<List<EmailTemplateDTO>> getMarketTemplates() throws IOException {
+        return ResponseEntity.ok(emailService.getMarketTemplates());
     }
 }
