@@ -4,4 +4,8 @@ export interface User {
   email: string;
   avatar?: string;
   role?: string;
+  usedCount: number;
+  planName: string;
+  aiLimit: number;
+  subscriptionId: string;
 }
