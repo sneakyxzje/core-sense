@@ -20,6 +20,7 @@
   import { renderHighlightedText } from "@src/lib/utils/textUtils";
   import type { AiAssessment } from "@src/lib/types/submission";
   import { toast } from "svelte-sonner";
+  import { invalidateAll } from "$app/navigation";
 
   let { data }: { data: PageData } = $props();
   let isAnalyzing = $state(false);
@@ -29,7 +30,7 @@
   const mappedAnswers = $derived(
     submission
       ? getMappedAnswers(submission.answer, submission.snapshotSchema)
-      : []
+      : [],
   );
   const displayAnswers = $derived(
     mappedAnswers
@@ -40,7 +41,7 @@
           ...item,
           htmlValue: renderHighlightedText(item.value, highlights),
         };
-      })
+      }),
   );
   $effect(() => {
     if (submission && submission.aiAssessment) {
@@ -59,6 +60,7 @@
         userPrompt: submission.userPrompts,
       };
       const res = await api.post(`/gemini/${submission.id}/analyze`, payload);
+      await invalidateAll();
       analysisResult = res as AiAssessment;
     } catch (e: any) {
       const errorData = e.data;
