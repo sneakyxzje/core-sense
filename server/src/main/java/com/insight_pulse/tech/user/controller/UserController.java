@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.insight_pulse.tech.security.principal.UserDetailsImpl;
 import com.insight_pulse.tech.user.dto.UserDTO;
+import com.insight_pulse.tech.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,9 +16,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
-    
+    private final UserService userService;
     @GetMapping("/me")
-    public ResponseEntity<?> getMe(@AuthenticationPrincipal UserDetailsImpl currentUser) {
-        return ResponseEntity.ok(new UserDTO(currentUser.getId(), currentUser.getFullname(), currentUser.getEmail()));
+    public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal UserDetailsImpl currentUser) {
+        return ResponseEntity.ok(userService.getUser(currentUser));
     } 
 }
