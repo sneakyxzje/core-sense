@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { api } from "@src/lib/utils/api.js";
   import { Check, Rocket, Zap, Crown, Building2 } from "lucide-svelte"; // Cần cài lucide-svelte
 
   let { data } = $props();
@@ -15,6 +16,25 @@
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const handleUpgrade = async (subId: string) => {
+    console.log(subId);
+    try {
+      const res = await api.post<any, any>(
+        `/payment`,
+        {
+          subscriptionId: subId,
+        },
+        fetch,
+      );
+
+      if (res && res.data) {
+        window.location.href = res.data;
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 </script>
 
@@ -114,6 +134,7 @@
       {isPro
                 ? 'bg-primary-1 text-base-1 hover:bg-primary-hover  cursor-pointer shadow-lg shadow-blue-200'
                 : 'bg-primary-1 text-base-1 hover:bg-primary-hover'} cursor-pointer"
+              onclick={() => handleUpgrade(sub.id)}
             >
               {isPro ? "Bắt đầu dùng thử PRO" : "Nâng cấp ngay"}
             </button>
