@@ -20,7 +20,7 @@ export function syncAuthCookie(response: Response, event: RequestEvent) {
       path: parsed.path || "/",
       httpOnly: true,
       secure: false,
-      sameSite: (parsed.sameSite as any) || "strict",
+      sameSite: (parsed.sameSite as any) || "lax",
       maxAge: parsed["max-age"]
         ? parseInt(parsed["max-age"])
         : 60 * 60 * 24 * 7,
