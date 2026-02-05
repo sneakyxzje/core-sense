@@ -36,7 +36,7 @@ public class AuthService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    @Value("${app.cookie.samesite:Strict}") 
+    @Value("${app.cookie.samesite:Lax}") 
     
     private String sameSite;
     public RegisterResponse register(RegisterRequest request) {
@@ -107,7 +107,7 @@ public class AuthService {
                 .secure(false) 
                 .path("/")
                 .maxAge(7 * 24 * 60 * 60) 
-                .sameSite("Strict") 
+                .sameSite(sameSite) 
                 .build();
 
         ResponseCookie accessTokenCookie = ResponseCookie.from("jwt", newAccessToken)
@@ -115,7 +115,7 @@ public class AuthService {
                 .secure(false) 
                 .path("/")
                 .maxAge(jwtTokenProvider.getExpiryInSeconds())
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .build();
         return List.of(refreshTokenCookie, accessTokenCookie);
     }
