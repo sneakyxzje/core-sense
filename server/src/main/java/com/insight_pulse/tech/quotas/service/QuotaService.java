@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.google.api.gax.rpc.PermissionDeniedException;
 import com.insight_pulse.tech.quotas.domain.Quota;
 import com.insight_pulse.tech.quotas.domain.QuotaRepository;
+import com.insight_pulse.tech.quotas.dto.QuotaResponse;
 import com.insight_pulse.tech.quotas.exception.QuotaExceededException;
+import com.insight_pulse.tech.security.context.CurrentUserProvider;
 import com.insight_pulse.tech.subscription.domain.Subscription;
 import com.insight_pulse.tech.subscription.domain.SubscriptionRepository;
 import com.insight_pulse.tech.user.domain.User;
@@ -18,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class QuotaService {
     private final QuotaRepository quotaRepository;
-
+    private final CurrentUserProvider currentUserProvider;
     private final SubscriptionRepository subscriptionRepository;
     public void validateQuota(int userId) {
         Quota quota = quotaRepository.findByUserId(userId).orElseThrow(() -> new QuotaExceededException("Quota not found!"));
@@ -43,5 +46,22 @@ public class QuotaService {
         quota.setUsedCount(0);
         quota.setUpdatedAt(LocalDateTime.now());
         quotaRepository.save(quota);
+    }
+
+    public QuotaResponse getQuota(int userId) {        
+        Quota quotas = quotaRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Quota not found or permission denied")); 
+        return new QuotaResponse(
+            quotas.getUsedCount(),
+            quotas.getSubscription()
+        );
+    }
+
+    public QuotaResponse getAllQuota() {
+        int userId = currentUserProvider.getCurrentUserId();
+        Quota quotas = quotaRepository.findByUserId(userId).orElseThrow(() -> new RuntimeException("Quota not found or permission denied")); 
+        return new QuotaResponse(
+            quotas.getUsedCount(),
+            quotas.getSubscription()
+        );
     }
 }
