@@ -6,6 +6,8 @@
   import StatsCard from "@src/routes/(app)/dashboard/components/StatsCard.svelte";
   import SubmissionChart from "@src/routes/(app)/dashboard/components/SubmissionChart.svelte";
   import RecentFeed from "@src/routes/(app)/dashboard/components/RecentFeed.svelte";
+  import { toast } from "svelte-sonner";
+  import { goto } from "$app/navigation";
 
   let { data } = $props();
 
@@ -15,7 +17,15 @@
     summary: data.submissionSummary,
   });
 
-  onMount(() => dashboard.connectSocket());
+  onMount(() => {
+    dashboard.connectSocket();
+    if (
+      new URLSearchParams(window.location.search).get("payment") === "success"
+    ) {
+      toast.success("You have upgraded to Pro success!");
+      goto("/dashboard", { replaceState: true, noScroll: true });
+    }
+  });
   onDestroy(() => dashboard.disconnectSocket());
 </script>
 
