@@ -107,9 +107,19 @@
                     <UserIcon class="size-4" />
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-semibold"
-                      >{page.data?.user.fullname}</span
-                    >
+                    <div class="flex items-center gap-2">
+                      <span class="truncate font-semibold"
+                        >{page.data?.user.fullname}</span
+                      >
+                      <span
+                        class="px-1.5 py-0.5 text-[10px] font-bold rounded uppercase
+                        {page.data.user.subscriptionId === 'PRO'
+                          ? 'bg-primary-1 text-primary-fg-1'
+                          : 'bg-base-3 text-base-fg-3'}"
+                      >
+                        {page.data.user.subscriptionId || "FREE"}
+                      </span>
+                    </div>
                     <span class="truncate text-xs">{page.data.user.email}</span>
                   </div>
                   <ChevronsUpDown class="ml-auto size-4" />
@@ -117,7 +127,7 @@
               {/snippet}
             </DropdownMenu.Trigger>
             <DropdownMenu.Content
-              class="w-[--bits-dropdown-menu-anchor-width] min-w-56 rounded-lg"
+              class="w-[--bits-dropdown-menu-anchor-width] border border-base-border-1 min-w-56 rounded-lg"
               side="top"
               align="end"
               sideOffset={4}
@@ -140,14 +150,64 @@
                 </div>
               </DropdownMenu.Label>
               <DropdownMenu.Separator />
+              <div class="px-2 py-3 space-y-2">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-base-fg-3">AI Usage</span>
+                  <span class="text-base-fg-2"
+                    >{page.data.user.usedCount}/{page.data.user.aiLimit ||
+                      0}</span
+                  >
+                </div>
+                <div
+                  class="h-1.5 w-full bg-base-3 rounded-full overflow-hidden"
+                >
+                  <div
+                    class="h-full transition-all duration-500 rounded-full
+                    {(page.data.user.usedCount /
+                      (page.data.user.aiLimit || 1)) *
+                      100 >
+                    90
+                      ? 'bg-negative-1'
+                      : (page.data.user.usedCount /
+                            (page.data.user.aiLimit || 1)) *
+                            100 >
+                          70
+                        ? 'bg-priority-medium'
+                        : 'bg-positive-1'}"
+                    style="width: {Math.min(
+                      (page.data.user.usedCount /
+                        (page.data.user.aiLimit || 1)) *
+                        100,
+                      100,
+                    )}%"
+                  ></div>
+                </div>
+              </div>
+              <DropdownMenu.Separator />
               <DropdownMenu.Group>
-                <DropdownMenu.Item onclick={() => goto("/subscription")}>
-                  <Sparkles class="mr-2 size-4" />
-                  Nâng cấp Pro
-                </DropdownMenu.Item>
+                {#if page.data.user.subscriptionId !== "PRO"}
+                  <DropdownMenu.Item
+                    class="cursor-pointer hover:bg-base-3 text-primary-1 font-medium"
+                    onclick={() => goto("/subscription")}
+                  >
+                    <Sparkles class="mr-2 size-4" />
+                    Nâng cấp Pro
+                  </DropdownMenu.Item>
+                {:else}
+                  <DropdownMenu.Item
+                    class="cursor-pointer hover:bg-base-3"
+                    onclick={() => goto("/subscription")}
+                  >
+                    <Settings class="mr-2 size-4" />
+                    Quản lý gói cước
+                  </DropdownMenu.Item>
+                {/if}
               </DropdownMenu.Group>
               <DropdownMenu.Separator />
-              <DropdownMenu.Item onclick={auth.logout}>
+              <DropdownMenu.Item
+                class="cursor-pointer hover:bg-base-3"
+                onclick={auth.logout}
+              >
                 <LogOut class="mr-2 size-4" />
                 Đăng xuất
               </DropdownMenu.Item>
