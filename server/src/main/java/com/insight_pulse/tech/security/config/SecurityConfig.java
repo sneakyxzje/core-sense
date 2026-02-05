@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() 
                         .requestMatchers(HttpMethod.POST, "/api/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/submissions/**").permitAll()
+                        .requestMatchers("/api/payment/vnpay-callback").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/feedback/submit").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/gemini/**").authenticated()
                         .requestMatchers("/api/dashboard/**").authenticated()
